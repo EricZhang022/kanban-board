@@ -24,7 +24,35 @@ java -version
 
 Both outputs should show version 21 of the JDK. If they are not, install JDK 21 and reconfigure them in the PATH of your environment variables.
 
-### Step 3 - Start the backend
+### Step 3 - Initialize PostgreSQL Database
+
+Open a SQL Shell (like psql) and then enter in your password for user postgres.
+
+Once logged in, type the following command:
+
+```
+CREATE DATABASE kanban_db;
+```
+
+This will create a local database on your machine named ```kanban_db```.
+
+### Step 4 - Configure Spring Boot to connect to the database
+
+Under the directory ```backend/src/main/resources```
+
+Create a file named: ```application-local.properties```
+
+Copy and paste the following code into it:
+
+```
+DB_URL=jdbc:postgresql://localhost:5432/kanban_db
+DB_USERNAME=postgres
+DB_PASSWORD=your_password
+```
+
+Replace ```your_password``` with your own password used to log in to PostgreSQL.
+
+### Step 5 - Start the backend
 
 ```bash
 cd backend
@@ -33,7 +61,7 @@ cd backend
 
 This will start the server for the backend.
 
-### Step 4 - On a separate terminal and from the root directory, run the commands:
+### Step 6 - On a separate terminal and from the root directory, run the commands:
 
 ```bash
 cd frontend
@@ -42,7 +70,7 @@ npm install
 
 This will install the frontend dependencies.
 
-### Step 5 - Start the frontend
+### Step 7 - Start the frontend
 
 ```bash
 npm run dev
@@ -50,6 +78,6 @@ npm run dev
 
 This will start the development server for the frontend.
 
-### Step 6 - Open a browser and visit [http://localhost:5173](http://localhost:5173) to open the frontend
+### Step 8 - Open a browser and visit [http://localhost:5173](http://localhost:5173) to open the frontend
 
 This should connect to the backend automatically.
