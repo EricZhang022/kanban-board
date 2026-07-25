@@ -7,6 +7,11 @@ public class Auth {
     
     // SignUp Process
 
+    // 0. Is First & Last name valid
+    public boolean isNameValid(String firstName, String lastName) {
+        return firstName.matches("[A-Za-z]+") && lastName.matches("[A-Za-z]+");
+    }
+
     // 1. Does pass match with confirmPass?
     public boolean passwordsMatch(String password, String confirmPassword) {
         return password.equals(confirmPassword);
@@ -44,10 +49,25 @@ public class Auth {
         return lower && upper && digit && special;
     }
 
-    // // 3. Repeat username?
+    // 3. Is Username valid?
+    public boolean isUsernameValid(String username) {
+        return username.matches("[A-Za-z0-9]+");
+    }
+
+    // // 4. Repeat username?
     // public boolean userExist(String username) {
     //     return true;
     // }
 
-    // 4. 
+    // 5. Valid Email regex
+    public boolean isEmailValid(String email) {
+       return email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$"); 
+    }
+
+    // // 6. Is Email Unique
+    // public boolean isEmailExist(String email) {
+
+    // }
+
+
 }
