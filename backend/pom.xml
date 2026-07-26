@@ -69,6 +69,11 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- <dependency> this can be add later to remove all getter/setter and replace by @Data annotation -> require lombok extension tho
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency> -->
 	</dependencies>
 
 	<build>
