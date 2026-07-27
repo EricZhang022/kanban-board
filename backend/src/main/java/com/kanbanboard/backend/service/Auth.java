@@ -1,5 +1,6 @@
 package com.kanbanboard.backend.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.kanbanboard.backend.dto.Response;
@@ -11,8 +12,10 @@ import com.kanbanboard.backend.repo.UserRepository;
 public class Auth {
 
     private final UserRepository userRepo;
-    public Auth(UserRepository userRepository) {
+    private final PasswordEncoder encoder;
+    public Auth(UserRepository userRepository, PasswordEncoder encoder) {
         this.userRepo = userRepository;
+        this.encoder = encoder;
     }
     
     // SignUp Process ============================================================================
@@ -128,9 +131,7 @@ public class Auth {
         }
 
         // Else start prepare to add user into db
-
-        // hash passwd -> require spring security -> test w plain text rn !!!!!!!!!!!!!!!IMPORRTANT!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-        String hashedPass = password;
+        String hashedPass = encoder.encode(password);
         userRepo.save(new User(firstName, lastName, username, email, hashedPass));
         res = new Response<>(200, "User has been successfully created");
         return res;
