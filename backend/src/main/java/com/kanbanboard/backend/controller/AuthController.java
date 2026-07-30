@@ -33,13 +33,8 @@ public class AuthController {
     
     @PostMapping("/login")
     public ResponseEntity<Response<String>> login(@RequestBody LoginRequest request) {
-        System.out.println(request.getIdentifier()); // for debugging
-        System.out.println(request.getPassword()); // for debugging
-
-        // Need to check if identifier + password exists within the database
-        // Then assign a JWT to the user to the front end so that the user stays logged in
-
-        return ResponseEntity.ok(new Response<>(200, "OK"));
+        Response<String> res = auth.login(request);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 
 }

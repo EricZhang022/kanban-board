@@ -12,6 +12,8 @@ import java.util.Base64;
 
 import org.springframework.stereotype.Service;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 
 @Service
@@ -55,16 +57,34 @@ public class Jwt {
     private final long EXPIRATION = 1000 * 60 * 60 * 24; //24 hrs
 
     //Generate signed JWT for given identifier
-    public String generateToken(String identifier) {
+    public String generateToken(String username) {
         Date now = new Date();
         Date expireTime = new Date(now.getTime() + EXPIRATION);
 
         return Jwts.builder()
-        .subject(identifier)
+        .subject(username)
         .issuedAt(now)
         .expiration(expireTime)
         .signWith(privateKey, Jwts.SIG.RS256)
         .compact();
+    }
+
+    // check if token has valid sign & not expired -> if true return this user's username
+    public String isTokenValid(String token) {
+        try {
+            Claims c = Jwts.parser()
+            .verifyWith(publicKey)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+
+            String username = c.getSubject();
+            return username;
+        }
+        catch (JwtException | IllegalArgumentException e) {
+            // corrupted signature / expired token
+            return null;
+        }
     }
     
 }

@@ -16,9 +16,11 @@ public class Auth {
 
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
-    public Auth(UserRepository userRepository, PasswordEncoder encoder) {
+    private final Jwt jwt;
+    public Auth(UserRepository userRepository, PasswordEncoder encoder, Jwt jwt) {
         this.userRepo = userRepository;
         this.encoder = encoder;
+        this.jwt = jwt;
     }
     
     // SignUp Process ============================================================================
@@ -157,9 +159,8 @@ public class Auth {
             return res;
         }
 
-
-
-        res = new Response<>(200, "Login successful");
+        String token = jwt.generateToken(curr_user.getUsername());
+        res = new Response<>(200, "Login successful", token); //give the token to the user, every request would need verify the jwt.
         return res;
     }
 
