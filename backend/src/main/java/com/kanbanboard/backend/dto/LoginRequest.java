@@ -8,7 +8,7 @@ public class LoginRequest {
     public String getIdentifier() {
         return identifier;
     }
-    public void setUsername(String identifier) {
+    public void setIdentifier(String identifier) {
         this.identifier = identifier;
     }
 

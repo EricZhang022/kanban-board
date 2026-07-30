@@ -1,6 +1,5 @@
 package com.kanbanboard.backend.controller;
 
-import org.apache.commons.logging.Log;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;

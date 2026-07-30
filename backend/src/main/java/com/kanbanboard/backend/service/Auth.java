@@ -1,8 +1,11 @@
 package com.kanbanboard.backend.service;
 
+import java.util.Optional;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.kanbanboard.backend.dto.LoginRequest;
 import com.kanbanboard.backend.dto.Response;
 import com.kanbanboard.backend.dto.SignUpRequest;
 import com.kanbanboard.backend.entity.User;
@@ -134,6 +137,29 @@ public class Auth {
         String hashedPass = encoder.encode(password);
         userRepo.save(new User(firstName, lastName, username, email, hashedPass));
         res = new Response<>(200, "User has been successfully created");
+        return res;
+    }
+
+    public Response<String> login(LoginRequest request) {
+        Response<String> res;
+        String identifier = request.getIdentifier();
+        String password = request.getPassword();
+
+        Optional<User> user = userRepo.findByUsernameOrEmail(identifier, identifier); //first is check by username col, second is email
+        if (user.isEmpty()) { 
+            res = new Response<>(401, "The username or email does not exist");
+            return res;
+        }
+
+        User curr_user = user.get();
+        if (!encoder.matches(password, curr_user.getPassword())) {
+            res = new Response<>(401, "Password do not match.");
+            return res;
+        }
+
+
+
+        res = new Response<>(200, "Login successful");
         return res;
     }
 
