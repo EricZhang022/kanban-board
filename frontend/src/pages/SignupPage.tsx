@@ -24,15 +24,39 @@ export default function SignupPage(){
     const [username, setUsername] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [password2, setPassword2] = useState("")
+    const [confirmPassword, setConfirmPassword] = useState("")
     
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const url = "http://localhost:8080"
+        try{
 
-        console.log("ye")
+        const url = "http://localhost:8080"
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                firstName,
+                lastName,
+                username,
+                email,
+                password,
+                confirmPassword
+            })
+        })
+
+        const result = await response.json()
+
+        if (result.ok){
+            
+        }
+    } catch (e) {
+        console.error(e)
+    }
+
     }
     return(
         <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
@@ -46,7 +70,7 @@ export default function SignupPage(){
                     {inputs("Username", "text", "username", username, "", "", setUsername)}
                     {inputs("Email", "email", "email", email, "", "", setEmail)}
                     {inputs("Password", "password", "password", password, "", "", setPassword)}
-                    {inputs("Re-enter Password", "password", "password2", password2, "", "", setPassword2)}
+                    {inputs("Re-enter Password", "password", "confirmPassword", confirmPassword, "", "", setConfirmPassword)}
 
                     <button type="submit" className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700">
                         Sign Up
