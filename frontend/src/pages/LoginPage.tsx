@@ -7,10 +7,10 @@ function LoginPage() {
   const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    console.log({
-      identifier,
-      password,
-    });
+    // console.log({
+    //   identifier,
+    //   password,
+    // });
 
     try {
       const response = await fetch("http://localhost:8080/api/auth/login", {

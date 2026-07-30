@@ -52,7 +52,18 @@ DB_PASSWORD=your_password
 
 Replace ```your_password``` with your own password used to log in to PostgreSQL.
 
-### Step 5 - Start the backend
+### Step 5 - Generate JWT Signing Keys
+
+Backend signs login token using RS256 algorithm, which needs an RSA key pair. 
+From the backend/ directory (same layer with src/) run these commands in terminal:
+
+```bash
+mkdir keys
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out keys/jwt_private.pem
+openssl rsa -pubout -in keys/jwt_private.pem -out keys/jwt_public.pem
+```
+
+### Step 6 - Start the backend
 
 ```bash
 cd backend
@@ -61,7 +72,7 @@ cd backend
 
 This will start the server for the backend.
 
-### Step 6 - On a separate terminal and from the root directory, run the commands:
+### Step 7 - On a separate terminal and from the root directory, run the commands:
 
 ```bash
 cd frontend
@@ -70,7 +81,7 @@ npm install
 
 This will install the frontend dependencies.
 
-### Step 7 - Start the frontend
+### Step 8 - Start the frontend
 
 ```bash
 npm run dev
@@ -78,6 +89,6 @@ npm run dev
 
 This will start the development server for the frontend.
 
-### Step 8 - Open a browser and visit [http://localhost:5173](http://localhost:5173) to open the frontend
+### Step 9 - Open a browser and visit [http://localhost:5173](http://localhost:5173) to open the frontend
 
 This should connect to the backend automatically.
