@@ -1,14 +1,7 @@
-import { useNavigate } from "react-router";
+import { Link, NavLink, useNavigate } from "react-router"
+
 function HomePage() {
     const navigate = useNavigate();
-
-        const testSecure = async () => {
-        const response = await fetch("http://localhost:8080/secure", {
-            credentials: "include",
-        });
-        const text = await response.text();
-        console.log("Secure response:", text, response.status);
-    };
 
     return (
         <div>
