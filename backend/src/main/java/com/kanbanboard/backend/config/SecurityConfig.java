@@ -27,7 +27,7 @@ public class SecurityConfig {
                 auth.requestMatchers("/api/auth/login").permitAll();
                 auth.anyRequest().authenticated();
             })
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // never create an HttpSession at all
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // never create an HttpSession at all`
             .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class) // place the auth filter before the UPAFilter (traditional -> username+pass, aren't using this)
             .csrf(csrf -> csrf.disable())
             .build();
