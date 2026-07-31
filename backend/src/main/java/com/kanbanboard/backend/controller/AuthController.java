@@ -1,5 +1,6 @@
 package com.kanbanboard.backend.controller;
 
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,10 +12,11 @@ import com.kanbanboard.backend.dto.SignUpRequest;
 import com.kanbanboard.backend.dto.LoginRequest;
 
 import com.kanbanboard.backend.service.Auth;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AuthController {
 
     // -> auth need exist by time signup runs
@@ -32,8 +34,23 @@ public class AuthController {
     }
     
     @PostMapping("/login")
-    public ResponseEntity<Response<String>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<Response<String>> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         Response<String> res = auth.login(request);
+
+        if (res.getStatusCode() == 200) {
+            String token = res.getData();
+            ResponseCookie cookie = ResponseCookie.from("jwt", token)
+            .httpOnly(true)
+            .secure(false) // ***true in production -> requires HTTPS *** -> rn in localhost development stage so set false
+            .sameSite("Lax")
+            .path("/")
+            .maxAge(60 * 60 * 24)
+            .build();
+
+            response.addHeader("Set-Cookie", cookie.toString());
+            res.setData(null);
+        }
+
         return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 

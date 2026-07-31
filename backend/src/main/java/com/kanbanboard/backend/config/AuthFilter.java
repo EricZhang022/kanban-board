@@ -12,6 +12,7 @@ import com.kanbanboard.backend.service.Jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -28,19 +29,26 @@ public class AuthFilter extends OncePerRequestFilter{ //plugs into request pipel
     // Spring will automatically call this method
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String header = request.getHeader("Authorization");
+        String token = null;
+        Cookie[] cookies = request.getCookies();
 
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7); //Ignoring the "Bearer "
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("jwt")) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (token != null) {
             String username = jwt.isTokenValid(token);
-
+            // this specific request belongs to this specific user
             if (username != null) {
-                // this specific request belongs to this specific user
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, null, List.of()); // [who, proof, permission] -> [principal, credentials, authorities]
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
-
         //w/o this line, request will hang
         filterChain.doFilter(request, response);
     }
