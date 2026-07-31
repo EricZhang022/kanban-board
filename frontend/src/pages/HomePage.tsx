@@ -19,6 +19,10 @@ function HomePage() {
                     <a href = "#" className = "px-4 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition">
                         Something Else????
                     </a>
+{/*                 # test purpose
+                    <button onClick={testSecure} className="px-4 py-2 rounded-md text-sm font-medium bg-green-600 hover:bg-green-700 transition">
+                        Test /secure
+                    </button> */}
                 </div>
             </nav>
 {/* -------------------------------------------------------------------------------------------------------------------------------*/}

@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 
 function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -26,6 +28,12 @@ function LoginPage() {
       });
 
       const data = await response.json();
+      if (response.ok) {
+        navigate("/");
+      }
+      else {
+        console.log(data.message);
+      }
 
       console.log(data);
     } catch (error) {
