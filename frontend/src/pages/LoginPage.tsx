@@ -1,18 +1,44 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 
 function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    console.log({
-      identifier,
-      password,
-    });
+    // console.log({
+    //   identifier,
+    //   password,
+    // });
 
-    // Need to send this to the backend
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          identifier,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        navigate("/");
+      }
+      else {
+        console.log(data.message);
+      }
+
+      console.log(data);
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
 
   return (

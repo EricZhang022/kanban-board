@@ -10,4 +10,10 @@ public class Controller {
     public String hello() {
         return "Backend is running! Spring Boot is successfully installed!";
     }
+
+    // // testing purpose
+    // @GetMapping("/secure")
+    // public String secure() {
+    //     return "You are authenticated";
+    // }
 }
