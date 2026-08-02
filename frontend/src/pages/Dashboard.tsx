@@ -43,7 +43,7 @@ function Dashboard() {
                     Welcome back, {user?.firstName}!
                 </h1>
 
-                <button className="bg-gray-900 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition" onClick={handleLogout}>
+                <button className="bg-gray-900 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition cursor-pointer" onClick={handleLogout}>
                     Sign Out
                 </button>
             </nav>

@@ -19,7 +19,7 @@ function HomePage() {
         <div>
 {/* -------------------------------------------NAV--------------------------------------------------------------------------------*/}
             <nav className="bg-gray-800 text-white px-6 py-4 flex items-center shadow-md">
-                <h1 className = "font-bold text-xl tracking-wide text indig-400 mr-6" onClick={() => navigate('/login')}>
+                <h1 className = "font-bold text-xl tracking-wide text indig-400 mr-6">
                     Personal Kanboard Project
                 </h1>
 

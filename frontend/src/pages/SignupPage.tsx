@@ -93,7 +93,7 @@ export default function SignupPage(){
                         </p>
                     )}
 
-                    <button type="submit" className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700">
+                    <button type="submit" className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 cursor-pointer">
                         Sign Up
                     </button>
 
