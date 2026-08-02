@@ -1,18 +1,25 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { useEffect } from "react";
 
 function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+      fetch("http://localhost:8080/api/auth/check", {
+          credentials: "include",
+      })
+      .then((res) => {
+          if (res.ok) {
+              navigate("/dashboard");
+          }
+      });
+  }, []);
+
   const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    // console.log({
-    //   identifier,
-    //   password,
-    // });
 
     try {
       const response = await fetch("http://localhost:8080/api/auth/login", {
@@ -29,13 +36,12 @@ function LoginPage() {
 
       const data = await response.json();
       if (response.ok) {
-        navigate("/");
+        navigate("/dashboard");
       }
       else {
         console.log(data.message);
       }
 
-      console.log(data);
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -99,9 +105,9 @@ function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Don't have an account?{" "}
-          <button className="font-medium text-blue-600 hover:underline">
+          <Link to="/signup" className="font-medium text-blue-600 hover:underline">
             Sign up
-          </button>
+          </Link>
         </p>
       </div>
     </div>

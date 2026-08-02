@@ -1,7 +1,19 @@
 import { Link, NavLink, useNavigate } from "react-router"
+import { useEffect } from "react";
 
 function HomePage() {
     const navigate = useNavigate();
+
+    useEffect(() => {
+        fetch("http://localhost:8080/api/auth/check", {
+            credentials: "include",
+        })
+        .then((res) => {
+            if (res.ok) {
+                navigate("/dashboard");
+            }
+        });
+    }, []);
 
     return (
         <div>
