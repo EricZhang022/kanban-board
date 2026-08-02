@@ -7,7 +7,7 @@ export function inputs(label:string, type:string, name:string, value:string, err
         <div>
             <label htmlFor={name} className="mb-2 block text-sm font-medium text-gray-700">{label}</label>
             <input type={type} name={name} id={name} value={value} placeholder={placeholder} 
-            onChange={(event) => setVal(event.target.value)} className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"/>
+            onChange={(event) => setVal(event.target.value)} required className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"/>
 
             {errorMessage && 
             <div>
@@ -25,6 +25,8 @@ export default function SignupPage(){
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
+
+    const [errorMessage, setErrorMessage] = useState("");
 
     const navigate = useNavigate();
 
@@ -63,6 +65,8 @@ export default function SignupPage(){
 
             if (result.ok){
                 navigate("/login");
+            } else {
+                setErrorMessage(result.message);
             }
         } catch (e) {
             console.error(e)
@@ -82,6 +86,12 @@ export default function SignupPage(){
                     {inputs("Email", "email", "email", email, "", "", setEmail)}
                     {inputs("Password", "password", "password", password, "", "", setPassword)}
                     {inputs("Re-enter Password", "password", "confirmPassword", confirmPassword, "", "", setConfirmPassword)}
+
+                    {errorMessage && (
+                        <p className="text-red-500 text-center text-md mt-2">
+                        {errorMessage}
+                        </p>
+                    )}
 
                     <button type="submit" className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700">
                         Sign Up

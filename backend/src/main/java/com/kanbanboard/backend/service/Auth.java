@@ -98,13 +98,13 @@ public class Auth {
 
         // 0. Valid name?
         if (!isNameValid(firstName, lastName)) {
-            res = new Response<>(400, "First name and Last name must only consist alphabets");
+            res = new Response<>(400, "First and Last name can only contain letters");
             return res;
         }
 
         // 1. Valid username?
         if (!isUsernameValid(username)) {
-            res = new Response<>(400, "Username can only consist alphabets or digits");
+            res = new Response<>(400, "Username may only contain alphanumeric characters");
             return res;
         }
 
@@ -114,24 +114,24 @@ public class Auth {
             return res;
         }
 
-        // 2. Pass = ConfirmPass check
-        if (!passwordsMatch(password, confirmPass)) {
-            res = new Response<>(400, "Confirm Password does not match your password");
-            return res;
-        }
-        if (!isPassGood(password)) {
-            res = new Response<>(400, "Password needs to be at least 8 characters, including at least a lower case, an upper case, a digit, and a special character.");
-            return res;
-        }
-
         // 3. Valid Email Format
         if (!isEmailValid(email)) {
-            res = new Response<>(400, "Email format does not follow the standard.");
+            res = new Response<>(400, "Invalid Email format");
             return res;
         }
 
         if (isEmailExist(email)) {
-            res = new Response<>(400, "Email exists already");
+            res = new Response<>(400, "Email is already in use");
+            return res;
+        }
+
+        // 4. Pass = ConfirmPass check
+        if (!passwordsMatch(password, confirmPass)) {
+            res = new Response<>(400, "Passwords do not match");
+            return res;
+        }
+        if (!isPassGood(password)) {
+            res = new Response<>(400, "Password needs to be at least 8 characters, including at least a lower case, an upper case, a digit, and a special character");
             return res;
         }
 
