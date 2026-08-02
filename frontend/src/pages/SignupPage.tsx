@@ -39,7 +39,7 @@ export default function SignupPage(){
         });
     }, []);
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         try {
@@ -72,7 +72,7 @@ export default function SignupPage(){
     return(
         <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
             <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
-                <h1 className="text-center text-3xl">Sign up for an Account!</h1>
+                <h1 className="text-center text-3xl font-bold text-gray-900 mb-8">Sign up for an Account!</h1>
 
                 <form onSubmit={handleSubmit} className="space-y-5 pt-2 pb-2">
                 {/* label, type, name, value, errormes, placeholder, setval */}
@@ -88,8 +88,14 @@ export default function SignupPage(){
                     </button>
 
                 </form>
-            </div>
 
+                <p className="mt-6 text-center text-sm text-gray-600">
+                    Already have an account?{" "}
+                    <Link to="/login" className="font-medium text-blue-600 hover:underline">
+                        Log In
+                    </Link>
+                </p>
+            </div>
         </div>
     )
 }
