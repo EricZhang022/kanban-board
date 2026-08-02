@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link, NavLink, useNavigate } from "react-router"
 
 export function inputs(label:string, type:string, name:string, value:string, errorMessage: string, 
@@ -25,37 +25,48 @@ export default function SignupPage(){
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
-    
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        fetch("http://localhost:8080/api/auth/check", {
+            credentials: "include",
+        })
+        .then((res) => {
+            if (res.ok) {
+                navigate("/dashboard");
+            }
+        });
+    }, []);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        try{
-
-        const url = "http://localhost:8080"
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                firstName,
-                lastName,
-                username,
-                email,
-                password,
-                confirmPassword
+        try {
+            const url = "http://localhost:8080/api/auth/signup"
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    firstName,
+                    lastName,
+                    username,
+                    email,
+                    password,
+                    confirmPassword
+                })
             })
-        })
 
-        const result = await response.json()
+            const result = await response.json()
 
-        if (result.ok){
-            
+            if (result.ok){
+                navigate("/login");
+            }
+        } catch (e) {
+            console.error(e)
         }
-    } catch (e) {
-        console.error(e)
-    }
 
     }
     return(

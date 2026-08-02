@@ -15,9 +15,10 @@ You may or may not need to ```cd``` into your repo where you cloned it.
 
 ### Step 2 - Configure JDK version
 
-Run the following commands:
+From the root directory, run the following commands:
 
 ```bash
+cd backend
 java -version
 .\mvnw.cmd -version
 ```
