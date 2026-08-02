@@ -7,6 +7,8 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  const [errorMessage, setErrorMessage] = useState("");
+
   useEffect(() => {
       fetch("http://localhost:8080/api/auth/check", {
           credentials: "include",
@@ -34,15 +36,15 @@ function LoginPage() {
         }),
       });
 
-      const data = await response.json();
       if (response.ok) {
         navigate("/dashboard");
       }
       else {
-        console.log(data.message);
+        setErrorMessage("Invalid username/email or password");
       }
 
     } catch (error) {
+      setErrorMessage("Unable to connect to the server.");
       console.error("Login failed:", error);
     }
   };
@@ -92,6 +94,12 @@ function LoginPage() {
               required
             />
           </div>
+
+          {errorMessage && (
+            <p className="text-red-500 text-center text-md mt-2">
+              {errorMessage}
+            </p>
+          )}
 
           <button
             type="submit"
