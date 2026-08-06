@@ -4,7 +4,6 @@ import java.util.List;
 
 public class CreateBoardRequest {
     private String boardName;
-    private String owner;
     private List<String> collaborators;
 
     public String getBoardName() {
@@ -13,13 +12,12 @@ public class CreateBoardRequest {
     public void setBoardName(String boardName) {
         this.boardName = boardName;
     }
-
-    public String getOwner() {
-        return owner;
-    }
     
     public List<String> getCollaborators() {
         return collaborators;
+    }
+    public void setCollaborators(List<String> collaborators) {
+        this.collaborators = collaborators;
     }
 
 

@@ -26,6 +26,14 @@ public class Board {
     @ManyToMany
     private List<User> collaborators;
 
+    public Board() {}
+
+    public Board(String boardName, User owner, List<User> collaborators) {
+        this.boardName = boardName;
+        this.owner = owner;
+        this.collaborators = collaborators;
+    }
+
     // for later 
     // @ManyToMany
     // private List<Columns> column
