@@ -20,7 +20,7 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
-    // Triggers when the user tries to access their dashboard
+    // Triggers when the user tries to access their dashboard or anything related to their profile
     @GetMapping("/me")
     public ResponseEntity<Response<UserDTO>> getCurrentUser(Authentication authentication) {
 
