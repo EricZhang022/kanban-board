@@ -2,6 +2,7 @@ package com.kanbanboard.backend.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,24 @@ public class BoardService {
 
     public boolean isOwnerInCollaborators(String ownerUsername, List<String> collaborators) {
         return collaborators.contains(ownerUsername);
+    }
+
+    // return if this user is either owner or collaborator of this board
+    public boolean hasAccess(Board board, String username) {
+        if (isOwner(board, username)) {
+            return true;
+        }
+        for (User currUser : board.getCollaborators()) {
+            if (currUser.getUsername().equals(username)) {
+                return true;
+            }
+        }
+        return false; // no match, no access
+    }
+
+    // return if this user is the board's owner
+    public boolean isOwner(Board board, String username) {
+        return board.getOwner().getUsername().equals(username);
     }
 
     public List<User> validCollaborators(List<String> collaborators) {
@@ -76,9 +95,62 @@ public class BoardService {
         Board newBoard = new Board(boardName, owner, collaboratorUsers);
         Board savedBoard = boardRepo.save(newBoard);
 
-        BoardDTO boardDTO = new BoardDTO(savedBoard);
+        BoardDTO boardDTO = new BoardDTO(savedBoard, owner.getUsername());
 
         res = new Response<>(200, "Board is successfully created", boardDTO);
+        return res;
+    }
+
+    public Response<List<BoardDTO>> getAllBoards(String username) {
+        Response<List<BoardDTO>> res;
+        User currUser;
+
+        try {
+            currUser = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("This user does not exist for boards."));
+        }
+        catch (RuntimeException e) {
+            res = new Response<>(404, e.getMessage());
+            return res;
+        }
+
+        List<Board> ownerBoards = boardRepo.findByOwner(currUser); //get all board from this curr user as owner
+        List<Board> collabBoards = boardRepo.findByCollaboratorsContaining(currUser); // get all board from this user exist as collaborators
+
+        List<Board> allBoards = new ArrayList<>();
+        allBoards.addAll(ownerBoards);
+        allBoards.addAll(collabBoards);
+
+        List<BoardDTO> allBoardDTO = new ArrayList<>();
+        for (Board currBoard : allBoards) {
+            allBoardDTO.add(new BoardDTO(currBoard, username));      
+        }
+
+        res = new Response<>(200, "All boards successfully retrieved", allBoardDTO);
+        return res;
+    }
+
+    public Response<BoardDTO> getOneBoard(UUID boardId, String username) {
+        Response<BoardDTO> res;
+        Board currBoard;
+
+        try {
+            currBoard = boardRepo.findById(boardId)
+                .orElseThrow(() -> new RuntimeException("This board does not exist"));
+        } catch (RuntimeException e) {
+            res = new Response<>(404, e.getMessage());
+            return res;
+        }
+
+        //authorization
+        boolean doUserHasAccess = hasAccess(currBoard, username);
+        if (!doUserHasAccess) {
+            res = new Response<>(403, "You do not have access to this board");
+            return res;
+        }
+        
+        BoardDTO currBoardDTO = new BoardDTO(currBoard, username);
+        res = new Response<>(200, "Successfully open this board", currBoardDTO);
         return res;
     }
 }
