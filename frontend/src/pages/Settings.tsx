@@ -23,6 +23,11 @@ function Settings() {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
+    const [accountMessage, setAccountMessage] = useState("");
+    const [accountSuccess, setAccountSuccess] = useState(false);
+    const [passwordMessage, setPasswordMessage] = useState("");
+    const [passwordSuccess, setPasswordSuccess] = useState(false);
+
     useEffect(() => {
         const fetchUser = async () => {
             const res = await fetch("http://localhost:8080/api/users/me", {
@@ -50,62 +55,189 @@ function Settings() {
 
     const initials = user ? `${user.firstName[0]}${user.lastName[0]}` : "";
 
-    const handleFirstNameSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleFirstNameSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        console.log("New first name:", firstName);
+        const res = await fetch("http://localhost:8080/api/users/me/first-name", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                firstName: firstName,
+            }),
+        });
 
-        // TODO: Send first name update to backend
-    };
+        const data = await res.json();
+        setAccountMessage(data.message);
 
-    const handleLastNameSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-
-        console.log("New last name:", lastName);
-
-        // TODO: Send last name update to backend
-    };
-
-    const handleUsernameSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-
-        console.log("New username:", username);
-
-        // TODO: Send username update to backend
-    };
-
-    const handleEmailSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-
-        console.log("New email:", email);
-
-        // TODO: Send email update to backend
-    };
-
-    const handlePasswordSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-
-        if (newPassword !== confirmPassword) {
-            alert("New passwords do not match.");
-            
-            // Warn the user passwords do not match
+        if (!res.ok) {
+            setAccountSuccess(false);
             return;
         }
 
-        // TODO: Send password update to backend
-        console.log({
-            currentPassword,
-            newPassword,
-            confirmPassword,
+        setUser((prev) => {
+            if (!prev) return prev;
+
+            return {
+                ...prev,
+                firstName: firstName,
+            };
         });
+
+        setAccountSuccess(true);
+    };
+
+    const handleLastNameSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const res = await fetch("http://localhost:8080/api/users/me/last-name", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                lastName: lastName,
+            }),
+        });
+
+        const data = await res.json();
+        setAccountMessage(data.message);
+
+        if (!res.ok) {
+            setAccountSuccess(false);
+            return;
+        } 
+
+        setUser((prev) => {
+            if (!prev) return prev;
+
+            return {
+                ...prev,
+                lastName: lastName,
+            };
+        });
+
+        setAccountSuccess(true);
+    };
+
+    const handleUsernameSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const res = await fetch("http://localhost:8080/api/users/me/username", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                username: username,
+            }),
+        });
+
+        const data = await res.json();
+        setAccountMessage(data.message);
+
+        if (!res.ok) {
+            setAccountSuccess(false);
+            return;
+        } 
+
+        setUser((prev) => {
+            if (!prev) return prev;
+
+            return {
+                ...prev,
+                username: username,
+            };
+        });
+
+        setAccountSuccess(true);
+    };
+
+    const handleEmailSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const res = await fetch("http://localhost:8080/api/users/me/email", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                email: email,
+            }),
+        });
+
+        const data = await res.json();
+        setAccountMessage(data.message);
+
+        if (!res.ok) {
+            setAccountSuccess(false);
+            return;
+        } 
+
+        setUser((prev) => {
+            if (!prev) return prev;
+
+            return {
+                ...prev,
+                email: email,
+            };
+        });
+
+        setAccountSuccess(true);
+    };
+
+    const handlePasswordSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        if (currentPassword === newPassword) {
+            setPasswordMessage("New password cannot match your current password");
+            setPasswordSuccess(false);
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setPasswordMessage("New passwords do not match");
+            setPasswordSuccess(false);
+            return;
+        }
+
+        const res = await fetch("http://localhost:8080/api/users/me/password", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                currentPassword: currentPassword,
+                newPassword: newPassword,
+            }),
+        });
+
+        const data = await res.json();
+        setPasswordMessage(data.message);
+
+        if (!res.ok) {
+            setPasswordSuccess(false);
+            return;
+        }
+        
+        setPasswordSuccess(true);
     };
 
     return (
         <div className="min-h-screen">
             <nav className="bg-gray-800 text-white px-6 py-4 flex justify-between items-center shadow-md">
-                <h1 className = "font-bold text-xl tracking-wide text indig-400 mr-6">
-                    Welcome back!
-                </h1>
+                <button
+                    onClick={() => navigate("/dashboard")}
+                    className="font-bold text-xl tracking-wide text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
+                >
+                    Dashboard
+                </button>
             </nav>
 
              {/* Settings Content */}
@@ -260,6 +392,13 @@ function Settings() {
                         </div>
                     </form>
 
+                    {accountMessage && (
+                        <p className={accountSuccess ? "text-green-500 text-md mt-6" :"text-red-500 text-md mt-6"}>
+                        {accountMessage}
+                        </p>
+                    )}
+
+
                 </div>
 
                 {/* Change Password */}
@@ -327,6 +466,12 @@ function Settings() {
                                 required
                             />
                         </div>
+
+                        {passwordMessage && (
+                            <p className={passwordSuccess ? "text-green-500 text-md my-6" :"text-red-500 text-md my-6"}>
+                            {passwordMessage}
+                            </p>
+                        )}
 
                         {/* Change Password Button */}
                         <button
