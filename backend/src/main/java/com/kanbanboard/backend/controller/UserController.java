@@ -170,16 +170,25 @@ public class UserController {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
 
+        String curPassword = request.getCurrentPassword();
+        String newPassword = request.getNewPassword();
+
         // Verify current password against the hashed one stored in the database
-        if (!encoder.matches(request.getCurrentPassword(), user.getPassword())) {
+        if (!encoder.matches(curPassword, user.getPassword())) {
             return ResponseEntity.status(401)
                 .body(new Response<>(401, "Current password is incorrect"));
         }
 
         // Verify that the current and the new passwords aren't the same
-        if (request.getCurrentPassword().equals(request.getNewPassword())) {
+        if (curPassword.equals(newPassword)) {
             return ResponseEntity.status(400)
                 .body(new Response<>(400, "New password cannot match your current password"));
+        }
+
+        // Verify that the password is strong enough
+        if (!auth.isPassGood(newPassword)) {
+            return ResponseEntity.status(400)
+                .body(new Response<>(400, "Password needs to be at least 8 characters, including at least a lower case, an upper case, a digit, and a special character"));
         }
 
         // Hash the new password
