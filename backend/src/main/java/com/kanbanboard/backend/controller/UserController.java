@@ -1,5 +1,7 @@
 package com.kanbanboard.backend.controller;
 
+import java.util.UUID;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,9 +39,9 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<Response<UserDTO>> getCurrentUser(Authentication authentication) {
 
-        String username = authentication.getName();
+        UUID userId = UUID.fromString(authentication.getName());
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
 
         UserDTO userDTO = new UserDTO(user);
@@ -53,9 +55,9 @@ public class UserController {
     @PutMapping("/me/first-name")
     public ResponseEntity<Response<String>> updateFirstName(@RequestBody FirstNameRequest request, Authentication authentication) {
 
-        String username = authentication.getName();
+        UUID userId = UUID.fromString(authentication.getName());
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
 
         String firstName = request.getFirstName();
@@ -78,9 +80,9 @@ public class UserController {
     @PutMapping("/me/last-name")
     public ResponseEntity<Response<String>> updateLastName(@RequestBody LastNameRequest request, Authentication authentication) {
 
-        String username = authentication.getName();
+        UUID userId = UUID.fromString(authentication.getName());
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
 
         String lastName = request.getLastName();
@@ -103,9 +105,9 @@ public class UserController {
     @PutMapping("/me/username")
     public ResponseEntity<Response<String>> updateUsername(@RequestBody UsernameRequest request, Authentication authentication) {
 
-        String username = authentication.getName();
+        UUID userId = UUID.fromString(authentication.getName());
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
 
         String newUsername = request.getUsername();
@@ -133,9 +135,9 @@ public class UserController {
     @PutMapping("/me/email")
     public ResponseEntity<Response<String>> updateEmail(@RequestBody EmailRequest request, Authentication authentication) {
 
-        String username = authentication.getName();
+        UUID userId = UUID.fromString(authentication.getName());
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
 
         String email = request.getEmail();
@@ -163,9 +165,9 @@ public class UserController {
     @PutMapping("/me/password")
     public ResponseEntity<Response<String>> changePassword(@RequestBody ChangePasswordRequest request, Authentication authentication) {
 
-        String username = authentication.getName();
+        UUID userId = UUID.fromString(authentication.getName());
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Verify current password against the hashed one stored in the database

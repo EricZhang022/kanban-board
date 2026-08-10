@@ -168,7 +168,7 @@ public class Auth {
             return res;
         }
 
-        String token = jwt.generateToken(curr_user.getUsername());
+        String token = jwt.generateToken(curr_user.getUserid());
         res = new Response<>(200, "Login successful", token); //give the token to the user, every request would need verify the jwt.
         return res;
     }

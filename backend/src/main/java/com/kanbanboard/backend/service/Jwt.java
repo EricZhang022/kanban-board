@@ -8,6 +8,7 @@ import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Date;
+import java.util.UUID;
 import java.util.Base64;
 
 import org.springframework.stereotype.Service;
@@ -57,12 +58,12 @@ public class Jwt {
     private final long EXPIRATION = 1000 * 60 * 60 * 24; //24 hrs
 
     //Generate signed JWT for given identifier
-    public String generateToken(String username) {
+    public String generateToken(UUID userId) {
         Date now = new Date();
         Date expireTime = new Date(now.getTime() + EXPIRATION);
 
         return Jwts.builder()
-        .subject(username)
+        .subject(userId.toString())
         .issuedAt(now)
         .expiration(expireTime)
         .signWith(privateKey, Jwts.SIG.RS256)
@@ -78,8 +79,8 @@ public class Jwt {
             .parseSignedClaims(token)
             .getPayload();
 
-            String username = c.getSubject();
-            return username;
+            String userId = c.getSubject();
+            return userId;
         }
         catch (JwtException | IllegalArgumentException e) {
             // corrupted signature / expired token
