@@ -63,7 +63,7 @@ export default function SignupPage(){
 
             const result = await response.json()
 
-            if (result.ok){
+            if (response.ok){
                 navigate("/login");
             } else {
                 setErrorMessage(result.message);

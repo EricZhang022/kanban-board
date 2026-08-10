@@ -42,10 +42,10 @@ public class AuthFilter extends OncePerRequestFilter{ //plugs into request pipel
         }
 
         if (token != null) {
-            String username = jwt.isTokenValid(token);
+            String userId = jwt.isTokenValid(token);
             // this specific request belongs to this specific user
-            if (username != null) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, null, List.of()); // [who, proof, permission] -> [principal, credentials, authorities]
+            if (userId != null) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userId, null, List.of()); // [who, proof, permission] -> [principal, credentials, authorities]
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
