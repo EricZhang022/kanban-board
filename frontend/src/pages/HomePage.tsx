@@ -16,7 +16,7 @@ function HomePage() {
     }, []);
 
     return (
-        <div>
+        <div className="min-h-screen flex flex-col">
 {/* -------------------------------------------NAV--------------------------------------------------------------------------------*/}
             <nav className="bg-gray-800 text-white px-6 py-4 flex items-center shadow-md">
                 <h1 className = "font-bold text-xl tracking-wide text indig-400 mr-6">
@@ -88,7 +88,6 @@ function HomePage() {
                     <p> {new Date().getFullYear()} © Personal Kanboard Project. All rights reserved. All lefts reserved. Bungee Gum possesses the properties of both rubber and gum.</p>
                 </div>
             </footer>
-
         </div>
     );
 }
