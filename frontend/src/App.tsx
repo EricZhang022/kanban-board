@@ -4,7 +4,8 @@ import LoginPage from "./pages/LoginPage"
 import SignupPage from "./pages/SignupPage"
 import Dashboard from "./pages/Dashboard"
 import Settings from "./pages/Settings"
-import ProtectedRoute from "./pages/ProtectedRoute"
+import Layout from "./components/Layout"
+import ProtectedRoute from "./components/ProtectedRoute"
 
 function App() {
 
@@ -14,14 +15,16 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/dashboard" element={
+
+        <Route element={
           <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>}/>
-        <Route path="/settings" element={
-          <ProtectedRoute>
-            <Settings />
-          </ProtectedRoute>}/>
+            <Layout />
+          </ProtectedRoute>
+        }>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />} />
+          
+          </Route>
       </Routes>
     </BrowserRouter>
   )
