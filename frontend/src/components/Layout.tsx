@@ -67,7 +67,21 @@ function Layout() {
                     onClick={() => navigate("/dashboard")}
                     className="font-bold text-xl tracking-wide text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
                 >
-                    Personal Kanboard Project
+                    Dashboard
+                </button>
+
+                <button
+                    onClick={() => navigate("/dashboard")}
+                    className="font-bold text-xl tracking-wide text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
+                >
+                    Button 2
+                </button>
+
+                <button
+                    onClick={() => navigate("/dashboard")}
+                    className="font-bold text-xl tracking-wide text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
+                >
+                    Button 3
                 </button>
 
                 <div ref={profileRef} className="relative">
