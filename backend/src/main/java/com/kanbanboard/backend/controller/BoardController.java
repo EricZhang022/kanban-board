@@ -43,7 +43,7 @@ public class BoardController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Response<BoardDTO>> fecthOneBoard(@PathVariable("id") UUID boardId, Authentication auth) {
+    public ResponseEntity<Response<BoardDTO>> fetchOneBoard(@PathVariable("id") UUID boardId, Authentication auth) {
         UUID userId = UUID.fromString(auth.getName());
         Response<BoardDTO> res = boardService.getOneBoard(boardId, userId);
         return ResponseEntity.status(res.getStatusCode()).body(res);

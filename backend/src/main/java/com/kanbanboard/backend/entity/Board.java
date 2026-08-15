@@ -37,6 +37,10 @@ public class Board {
     // for later 
     // @ManyToMany
     // private List<Columns> column
+
+    public UUID getBoardId() {
+        return boardId;
+    }
     
     public String getBoardName() {
         return boardName;
