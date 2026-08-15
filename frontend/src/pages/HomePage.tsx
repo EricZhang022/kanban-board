@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from "react-router"
+import { useNavigate } from "react-router"
 import { useEffect } from "react";
 
 function HomePage() {

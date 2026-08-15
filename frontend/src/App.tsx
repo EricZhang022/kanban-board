@@ -7,6 +7,7 @@ import Settings from "./pages/Settings"
 import Layout from "./components/Layout"
 import ProtectedRoute from "./components/ProtectedRoute"
 import BoardPage from "./pages/BoardPage"
+import CreateBoard from "./pages/CreateBoard"
 
 function App() {
 
@@ -25,6 +26,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/board/:id" element={<BoardPage />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/createboard" element={<CreateBoard />} />
           
           </Route>
       </Routes>
