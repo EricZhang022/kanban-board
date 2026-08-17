@@ -162,22 +162,22 @@ public class BoardService {
 
         try {
             currBoard = boardRepo.findById(boardId)
-                .orElseThrow(() -> new RuntimeException("Fail to get board in change board name"));
+                .orElseThrow(() -> new RuntimeException("Failed to get board in changing board name"));
             currUser = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Fail to get the curr user in change board name"));
+                .orElseThrow(() -> new RuntimeException("Failed to get the current user in changing board name"));
         }   
         catch (RuntimeException e) {
             res = new Response<>(404, e.getMessage());
             return res;
         }
 
-        //autherization anyone who has access
+        // authorization anyone who has access
         if (!hasAccess(currBoard, userId)) {
             res = new Response<>(403, "You do not have access to modify the name of this board");
             return res;
         }
 
-        //validate new board name
+        // validate new board name
         if (!isBoardNameValid(newBoardName)) {
             res = new Response<>(400, "Board name must be between 1 and 25 characters");
             return res;
@@ -188,6 +188,59 @@ public class BoardService {
 
         BoardDTO boardDTO = new BoardDTO(currBoard, currUser.getUsername());
         res = new Response<>(200, "Board name successfully updated", boardDTO);
+        return res;
+    }
+
+    // change Collaborators
+    public Response<BoardDTO> changeCollaborators(UUID boardId, UUID userId, List<String> newCollaborators) {
+        Response<BoardDTO> res;
+        Board currBoard;
+        User currUser;
+
+        List<User> collaboratorUsers;
+
+        try {
+            currBoard = boardRepo.findById(boardId)
+                .orElseThrow(() -> new RuntimeException("Failed to get board in changing collaborators"));
+            currUser = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Failed to get the current user in changing collaborators"));
+        }   
+        catch (RuntimeException e) {
+            res = new Response<>(404, e.getMessage());
+            return res;
+        }
+
+        // Only owner is allowed to modify the collaborators
+        if (!isOwner(currBoard, userId)) {
+            res = new Response<>(403, "You do not have access to modify the collaborators");
+            return res;
+        }
+
+        if (newCollaborators == null) {
+            collaboratorUsers = new ArrayList<>();
+        } else {
+            // collaborators validation check
+
+            User owner = currBoard.getOwner();
+
+            if (newCollaborators.contains(owner.getUsername())) {
+                res = new Response<>(400, "Owner shouldn't self invite to be a collaborator");
+                return res;
+            }
+            try {
+                collaboratorUsers = validCollaborators(newCollaborators);
+            } catch (RuntimeException e) {
+                res = new Response<>(400, e.getMessage());
+                return res;
+            }
+        }
+
+        currBoard.setCollaborators(collaboratorUsers);
+        boardRepo.save(currBoard);
+
+        BoardDTO boardDTO = new BoardDTO(currBoard, currUser.getUsername());
+
+        res = new Response<>(200, "Board collaborators successfully updated", boardDTO);
         return res;
     }
 

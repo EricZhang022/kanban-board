@@ -18,6 +18,7 @@ import com.kanbanboard.backend.dto.BoardDTO;
 import com.kanbanboard.backend.dto.CreateBoardRequest;
 import com.kanbanboard.backend.dto.Response;
 import com.kanbanboard.backend.dto.UpdateBoardNameRequest;
+import com.kanbanboard.backend.dto.UpdateCollaboratorsRequest;
 import com.kanbanboard.backend.service.BoardService;
 
 @RestController
@@ -53,6 +54,13 @@ public class BoardController {
     public ResponseEntity<Response<BoardDTO>> updateBoardName(@PathVariable("id") UUID boardId, @RequestBody UpdateBoardNameRequest request, Authentication auth) {
         UUID userId = UUID.fromString(auth.getName());
         Response<BoardDTO> res = boardService.changeBoardName(boardId, userId, request.getBoardName());
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    @PatchMapping("/collab/{id}")
+    public ResponseEntity<Response<BoardDTO>> updateCollaborators(@PathVariable("id") UUID boardId, @RequestBody UpdateCollaboratorsRequest request, Authentication auth) {
+        UUID userId = UUID.fromString(auth.getName());
+        Response<BoardDTO> res = boardService.changeCollaborators(boardId, userId, request.getCollaborators());
         return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 
