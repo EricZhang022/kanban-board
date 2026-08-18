@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
+interface Column {
+    columnId: string;
+    name: string;
+    position:number;
+}
+
 interface Board {
     boardId: string;
     boardName: string;
     owner: string;
     role: string;
     collaborators: string[];
+    columns: Column[]
 }
 
 function BoardPage() {
@@ -16,6 +23,7 @@ function BoardPage() {
     const [editingName, setEditingName] = useState(false);
     const [newName, setNewName] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [newColName, setNewColName] = useState("")
 
     const fetchBoard = async () => {
         const res = await fetch(`http://localhost:8080/api/board/${id}`, {
@@ -57,6 +65,22 @@ function BoardPage() {
         setBoard(data.data);
         setEditingName(false);
     };
+    const handleAddColumn = async (e: React.SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!newColName.trim()) return;
+
+        const res = await fetch(`http://localhost:8080/api/board/${id}/columns`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ name: newColName }),
+        });
+
+        if (res.ok) {
+            setNewColName("");
+            fetchBoard();
+        }
+    };
 
     const handleDelete = async () => {
         const confirmed = window.confirm("Delete this board? This can't be undone.");
@@ -71,6 +95,20 @@ function BoardPage() {
             navigate("/dashboard");
         }
     };
+
+    const handleDeleteColumn = async (columnId: string) => {
+        if (!window.confirm("Delete this column?")) return;
+        const res = await fetch(`http://localhost:8080/api/board/columns/${columnId}`, {
+            method: "DELETE",
+            credentials: "include",
+        });
+
+        if (res.ok) {
+            fetchBoard();
+        }
+    };
+
+    
 
     if (!board) {
         return <div className="max-w-4xl mx-auto px-4 py-10">Loading...</div>;
@@ -122,7 +160,43 @@ function BoardPage() {
             </div>
 
             <div className="border border-gray-200 rounded-lg p-6 mb-6">
-                <p className="text-gray-500">Columns and cards will go here.</p>
+                <div className="flex items-start gap-4 overflow-x-auto pb-4">
+                    {board.columns?.map((col) => (
+                        <div 
+                            key={col.columnId} 
+                            className="w-64 bg-gray-100 rounded-lg p-4 shrink-0 shadow-sm border border-gray-200 flex justify-between items-center"
+                        >
+                            <h3 className="font-semibold text-gray-800 text-sm">{col.name}</h3>
+                            <button
+                                type="button"
+                                onClick={() => handleDeleteColumn(col.columnId)}
+                                className="text-gray-400 hover:text-red-500 text-sm font-bold cursor-pointer transition p-1"
+                                title="Delete column"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ))}
+                    <form 
+                        onSubmit={handleAddColumn} 
+                        className="w-64 shrink-0 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-3 flex flex-col gap-2"
+                    >
+                        <input
+                            type="text"
+                            placeholder="Add new column..."
+                            value={newColName}
+                            onChange={(e) => setNewColName(e.target.value)}
+                            className="w-full text-sm p-2 border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                            required
+                        />
+                        <button
+                            type="submit"
+                            className="bg-cyan-600 text-white text-xs py-2 rounded font-medium hover:bg-cyan-500 transition cursor-pointer"
+                        >
+                            Create
+                        </button>
+                    </form>
+                </div>                
             </div>
 
             {board.role === "owner" && (
