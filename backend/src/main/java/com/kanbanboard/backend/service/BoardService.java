@@ -194,14 +194,11 @@ public class BoardService {
     public Response<String> deleteABoard(UUID boardId, UUID userId) {
         Response<String> res;
         Board currBoard;
-        User currUser;
 
         //validate board first
         try {
             currBoard = boardRepo.findById(boardId)
                 .orElseThrow(() -> new RuntimeException("Board does not exist on deleting a board"));
-            currUser = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User does not exist to delete a board"));
         }
         catch (RuntimeException e) {
             res = new Response<>(404, "User or board does not exist to delete a board");
