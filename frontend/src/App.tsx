@@ -3,7 +3,11 @@ import HomePage from "./pages/HomePage"
 import LoginPage from "./pages/LoginPage"
 import SignupPage from "./pages/SignupPage"
 import Dashboard from "./pages/Dashboard"
-import ProtectedRoute from "./pages/ProtectedRoute"
+import Settings from "./pages/Settings"
+import Layout from "./components/Layout"
+import ProtectedRoute from "./components/ProtectedRoute"
+import BoardPage from "./pages/BoardPage"
+import CreateBoard from "./pages/CreateBoard"
 
 function App() {
 
@@ -13,10 +17,18 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/dashboard" element={
+
+        <Route element={
           <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>}/>
+            <Layout />
+          </ProtectedRoute>
+        }>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/board/:id" element={<BoardPage />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/createboard" element={<CreateBoard />} />
+          
+          </Route>
       </Routes>
     </BrowserRouter>
   )

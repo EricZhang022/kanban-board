@@ -87,6 +87,15 @@ public class Auth {
         return userRepo.existsByEmail(email);
     }
 
+    // For changing account information
+    public boolean isFirstNameValid(String firstName) {
+        return firstName.matches("[A-Za-z]+");
+    }
+
+    public boolean isLastNameValid(String lastName) {
+        return lastName.matches("[A-Za-z]+");
+    }
+
     public Response<String> signup(SignUpRequest request) {
         Response<String> res;
         String firstName = request.getFirstName();
@@ -159,7 +168,7 @@ public class Auth {
             return res;
         }
 
-        String token = jwt.generateToken(curr_user.getUsername());
+        String token = jwt.generateToken(curr_user.getUserid());
         res = new Response<>(200, "Login successful", token); //give the token to the user, every request would need verify the jwt.
         return res;
     }
