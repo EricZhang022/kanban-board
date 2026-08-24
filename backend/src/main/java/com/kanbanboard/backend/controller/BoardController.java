@@ -56,6 +56,13 @@ public class BoardController {
         return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 
+    @PatchMapping("/collab/{id}")
+    public ResponseEntity<Response<BoardDTO>> updateCollaborators(@PathVariable("id") UUID boardId, @RequestBody UpdateCollaboratorsRequest request, Authentication auth) {
+        UUID userId = UUID.fromString(auth.getName());
+        Response<BoardDTO> res = boardService.changeCollaborators(boardId, userId, request.getCollaborators());
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Response<String>> deleteBoard(@PathVariable("id") UUID boardId, Authentication auth) {
         UUID userId = UUID.fromString(auth.getName());

@@ -30,8 +30,11 @@ function BoardPage() {
     const navigate = useNavigate();
     const [board, setBoard] = useState<Board | null>(null);
     const [editingName, setEditingName] = useState(false);
+    const [editingCollaborators, setEditingCollaborators] = useState(false);
     const [newName, setNewName] = useState("");
+    const [newCollaborators, setNewCollaborators] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [collaboratorErrorMessage, setCollaboratorErrorMessage] = useState("");
 
     //For Columns and Cards
     const [newColName, setNewColName] = useState("");
@@ -57,6 +60,7 @@ function BoardPage() {
         const data = await res.json();
         setBoard(data.data);
         setNewName(data.data.boardName);
+        setNewCollaborators(data.data.collaborators.join(", "));
     };
 
     useEffect(() => {
@@ -100,6 +104,33 @@ function BoardPage() {
             setIsAddingCol(false);
             fetchBoard();
         }
+    };
+
+    const handleEditCollaboratorsSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setCollaboratorErrorMessage("");
+
+        const collaborators = newCollaborators
+            .split(",")
+            .map((name) => name.trim())
+            .filter((name) => name.length > 0);
+
+        const res = await fetch(`http://localhost:8080/api/board/collab/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ collaborators: collaborators.length > 0 ? collaborators : null, }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            setCollaboratorErrorMessage(data.message);
+            return;
+        }
+
+        setBoard(data.data);
+        setEditingCollaborators(false);
     };
 
     const handleDelete = async () => {
@@ -287,11 +318,44 @@ function BoardPage() {
                 {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
 
                 <p className="text-sm text-gray-500 mt-3">Owner: @{board.owner}</p>
-                {board.collaborators.length > 0 && (
-                    <p className="text-sm text-gray-500 mt-1">
-                        Collaborators: {board.collaborators.map((c) => `@${c}`).join(", ")}
-                    </p>
+
+                {editingCollaborators ? (
+                    <form onSubmit={handleEditCollaboratorsSubmit} className="flex gap-3 items-start">
+                        <input
+                            type="text"
+                            value={newCollaborators}
+                            onChange={(e) => setNewCollaborators(e.target.value)}
+                            className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        />
+                        <button type="submit" className="bg-cyan-500 text-white px-4 py-2 rounded-md font-medium hover:bg-cyan-400 transition cursor-pointer">
+                            Save
+                        </button>
+                        <button type="button" onClick={() => {setEditingCollaborators(false); setCollaboratorErrorMessage(""); setNewCollaborators(board.collaborators.join(", "));}} className="px-4 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition cursor-pointer">
+                            Cancel
+                        </button>
+                    </form>
+                ) : (
+                    <div className="flex justify-between items-center">
+                        {board.collaborators.length > 0 ? (
+                            <p className="text-sm text-gray-500 mt-1">
+                                Collaborators: {board.collaborators.map((c) => `@${c}`).join(", ")}
+                            </p>
+                        ) : (
+                            <p className="text-sm text-gray-500 mt-1">
+                                Collaborators: No collaborators
+                            </p>
+                        )}
+                        {board.role === "owner" && (
+                            <button onClick={() => setEditingCollaborators(true)} className="text-sm text-cyan-600 hover:underline cursor-pointer">
+                                Edit
+                            </button>
+                        )}
+
+                    </div>
                 )}
+
+                {collaboratorErrorMessage && <p className="text-red-500 text-sm mt-2">{collaboratorErrorMessage}</p>}
+
             </div>
 
             <div className="border border-gray-200 rounded-lg p-6 mb-6">
