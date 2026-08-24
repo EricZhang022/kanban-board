@@ -18,6 +18,7 @@ import com.kanbanboard.backend.dto.BoardDTO;
 import com.kanbanboard.backend.dto.CreateBoardRequest;
 import com.kanbanboard.backend.dto.Response;
 import com.kanbanboard.backend.dto.UpdateBoardNameRequest;
+import com.kanbanboard.backend.dto.UpdateCollaboratorsRequest;
 import com.kanbanboard.backend.service.BoardService;
 
 @RestController
