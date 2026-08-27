@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, Outlet } from "react-router";
+import { Bell } from "lucide-react";
 
 interface User {
     firstName: string;
@@ -84,40 +85,50 @@ function Layout() {
                     Button 3
                 </button>
 
-                <div ref={profileRef} className="relative">
+                <div className="flex items-center gap-4">
                     <button
-                        onClick={() => setProfileOpen(!profileOpen)}
-                        className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center font-semibold hover:bg-cyan-400 transition cursor-pointer"
+                        onClick={() => navigate("/notifications")}
+                        className="relative text-gray-300 hover:text-white transition cursor-pointer"
+                        aria-label="Notifications"
                     >
-                        {initials}
+                        <Bell size={24} />
                     </button>
 
-                    {profileOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-lg overflow-hidden">
-                            <div className="px-4 py-3 border-b">
-                                <p className="font-semibold">
-                                    {user?.firstName} {user?.lastName}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                    @{user?.username}
-                                </p>
+                    <div ref={profileRef} className="relative">
+                        <button
+                            onClick={() => setProfileOpen(!profileOpen)}
+                            className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center font-semibold hover:bg-cyan-400 transition cursor-pointer"
+                        >
+                            {initials}
+                        </button>
+
+                        {profileOpen && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-lg overflow-hidden">
+                                <div className="px-4 py-3 border-b">
+                                    <p className="font-semibold">
+                                        {user?.firstName} {user?.lastName}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        @{user?.username}
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={() => {setProfileOpen(false); navigate("/settings")}}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 transition cursor-pointer"
+                                >
+                                    Settings
+                                </button>
+
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 transition cursor-pointer"
+                                >
+                                    Sign Out
+                                </button>
                             </div>
-
-                            <button
-                                onClick={() => {setProfileOpen(false); navigate("/settings")}}
-                                className="w-full text-left px-4 py-2 hover:bg-gray-100 transition cursor-pointer"
-                            >
-                                Settings
-                            </button>
-
-                            <button
-                                onClick={handleLogout}
-                                className="w-full text-left px-4 py-2 hover:bg-gray-100 transition cursor-pointer"
-                            >
-                                Sign Out
-                            </button>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </nav>
 

@@ -8,6 +8,7 @@ import Layout from "./components/Layout"
 import ProtectedRoute from "./components/ProtectedRoute"
 import BoardPage from "./pages/BoardPage"
 import CreateBoard from "./pages/CreateBoard"
+import Notifications from "./pages/Notifications"
 
 function App() {
 
@@ -27,8 +28,8 @@ function App() {
           <Route path="/board/:id" element={<BoardPage />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/createboard" element={<CreateBoard />} />
-          
-          </Route>
+          <Route path="/notifications" element={<Notifications />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )
