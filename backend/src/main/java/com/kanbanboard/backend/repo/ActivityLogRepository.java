@@ -1,5 +1,6 @@
 package com.kanbanboard.backend.repo;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -10,6 +11,6 @@ import com.kanbanboard.backend.entity.ActivityLog;
 
 @Repository
 public interface ActivityLogRepository extends JpaRepository<ActivityLog, UUID> {
-    // Optional<ActivityLog> getLogsByBoard(UUID boardID);
+    List<ActivityLog> findByBoard_BoardIdOrderByCreatedAtDesc(UUID boardID);
     
 }

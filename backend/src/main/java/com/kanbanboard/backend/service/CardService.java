@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.kanbanboard.activitydetails.createCardLog;
 import com.kanbanboard.backend.dto.CardDTO;
 import com.kanbanboard.backend.dto.CreateCardRequest;
 import com.kanbanboard.backend.dto.MoveCardRequest;
@@ -12,19 +13,26 @@ import com.kanbanboard.backend.dto.UpdateCardRequest;
 import com.kanbanboard.backend.entity.Board;
 import com.kanbanboard.backend.entity.Card;
 import com.kanbanboard.backend.entity.Column;
+import com.kanbanboard.backend.entity.ActivityLog.ActionType;
 import com.kanbanboard.backend.repo.BoardColumnRepository;
 import com.kanbanboard.backend.repo.CardRepository;
+import com.kanbanboard.backend.repo.UserRepository;
 
 @Service
 public class CardService {
     private final BoardColumnRepository columnRepo;
     private final CardRepository cardRepo;
     private final BoardService boardService;
+    private final ActivityLogService activityLogService;
+    private final UserRepository userRepo;
+    
 
-    public CardService(BoardColumnRepository columnRepo, CardRepository cardRepo, BoardService boardService) {
+    public CardService(BoardColumnRepository columnRepo, CardRepository cardRepo, BoardService boardService, ActivityLogService activityLogService, UserRepository userRepo) {
         this.columnRepo = columnRepo;
         this.cardRepo = cardRepo;
         this.boardService = boardService;
+        this.activityLogService = activityLogService;
+        this.userRepo = userRepo;
     }
 
     public Response<CardDTO> createCard(UUID columnId, CreateCardRequest request, UUID userId) {
@@ -53,6 +61,11 @@ public class CardService {
         Card savedCard = cardRepo.save(card);
 
         CardDTO cardDTO = new CardDTO(savedCard);
+
+
+        createCardLog c = new createCardLog(card.getCardId(), columnId);
+        activityLogService.logActivity(board, (userRepo.findById(userId)).orElse(null), ActionType.create_card, c);
+
         res = new Response<>(200, "Card created successfully", cardDTO);
         return res;
     }
