@@ -12,7 +12,7 @@ import com.kanbanboard.backend.entity.Notification;
 import com.kanbanboard.backend.entity.User;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
-    List<Notification> findByRecipientOrderByCreatedAtDesc(User recipient);
+    List<Notification> findByRecipientOrderByReadAscCreatedAtDesc(User recipient);
     List<Notification> findByRecipientAndReadTrueOrderByCreatedAtDesc(User recipient);
     long countByRecipientAndReadFalse(User recipient);
     void deleteByRecipientAndReadTrue(User recipient);

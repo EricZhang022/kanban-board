@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.kanbanboard.backend.dto.NotificationDTO;
 import com.kanbanboard.backend.dto.Response;
+import com.kanbanboard.backend.entity.Board;
 import com.kanbanboard.backend.entity.Notification;
 import com.kanbanboard.backend.entity.User;
 import com.kanbanboard.backend.enums.NotificationType;
@@ -31,7 +32,7 @@ public class NotificationService {
         User recipient = userRepo.findById(userId)
             .orElseThrow(() -> new RuntimeException("Recipient not found on getting notifications"));
 
-        List<Notification> notifs = notifRepo.findByRecipientOrderByCreatedAtDesc(recipient);
+        List<Notification> notifs = notifRepo.findByRecipientOrderByReadAscCreatedAtDesc(recipient);
         List<NotificationDTO> allNotifDTO = new ArrayList<>();
 
         for (Notification notif : notifs) {
@@ -54,7 +55,7 @@ public class NotificationService {
         
     }
 
-    public Response<NotificationDTO> sendNotification(UUID senderId, UUID recipientId, NotificationType type) {
+    public Response<NotificationDTO> sendNotification(UUID senderId, UUID recipientId, NotificationType type, Board board) {
         User sender = userRepo.findById(senderId)
             .orElseThrow(() -> new RuntimeException("Sender not found on sending notification"));
 
@@ -63,6 +64,7 @@ public class NotificationService {
 
         Notification notif = new Notification(recipient, type);
         notif.setSender(sender);
+        notif.setBoard(board);
 
         notifRepo.save(notif);
         NotificationDTO notifDTO = new NotificationDTO(notif);
@@ -102,6 +104,7 @@ public class NotificationService {
         return new Response<>(200, "Notification successfully marked as read");
     }
 
+    @Transactional
     public Response<String> deleteAllReadNotifications(UUID userId) {
         User recipient = userRepo.findById(userId)
             .orElseThrow(() -> new RuntimeException("Recipient not found on getting notification"));
@@ -111,6 +114,7 @@ public class NotificationService {
         return new Response<>(200, "Read notifications are successfully deleted");
     }
 
+    @Transactional
     public Response<String> deleteReadNotification(UUID userId, UUID notificationId) {
         User recipient = userRepo.findById(userId)
         .orElseThrow(() -> new RuntimeException(

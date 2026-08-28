@@ -40,7 +40,7 @@ public class NotificationController {
         return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 
-    @PatchMapping("/read/{id}")
+    @PatchMapping("/read/{notifId}")
     public ResponseEntity<Response<String>> markNotificationAsRead(Authentication auth, @PathVariable UUID notifId) {
         UUID userId = UUID.fromString(auth.getName());
         Response<String> res = notificationService.markNotificationAsRead(userId, notifId);
@@ -54,7 +54,7 @@ public class NotificationController {
         return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 
-    @DeleteMapping("/read/{id}")
+    @DeleteMapping("/read/{notifId}")
     public ResponseEntity<Response<String>> deleteAReadNotification(Authentication auth, @PathVariable UUID notifId) {
         UUID userId = UUID.fromString(auth.getName());
         Response<String> res = notificationService.deleteReadNotification(userId, notifId);

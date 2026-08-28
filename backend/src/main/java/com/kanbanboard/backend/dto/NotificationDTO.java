@@ -10,6 +10,7 @@ public class NotificationDTO {
     private UUID notificationId;
     private NotificationType type;
     private UserDTO sender;
+    private BoardDTO board;
     private boolean read;
     private LocalDateTime createdAt;
 
@@ -19,6 +20,7 @@ public class NotificationDTO {
 
         // Notifications may not have a sender
         this.sender = notification.getSender() != null ? new UserDTO(notification.getSender()) : null;
+        this.board = notification.getBoard() != null ? new BoardDTO(notification.getBoard(), notification.getRecipient().getUsername()) : null;
         this.read = notification.isRead();
         this.createdAt = notification.getCreatedAt();
     }
@@ -33,6 +35,10 @@ public class NotificationDTO {
 
     public UserDTO getSender() {
         return sender;
+    }
+
+    public BoardDTO getBoard() {
+        return board;
     }
 
     public boolean isRead() {

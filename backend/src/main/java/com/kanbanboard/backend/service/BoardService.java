@@ -11,17 +11,20 @@ import com.kanbanboard.backend.dto.CreateBoardRequest;
 import com.kanbanboard.backend.dto.Response;
 import com.kanbanboard.backend.entity.Board;
 import com.kanbanboard.backend.entity.User;
+import com.kanbanboard.backend.enums.NotificationType;
 import com.kanbanboard.backend.repo.BoardRepository;
 import com.kanbanboard.backend.repo.UserRepository;
 
 @Service
 public class BoardService {
+    private final NotificationService notificationService; // TESTING
     private final UserRepository userRepo;
     private final BoardRepository boardRepo;
 
-    public BoardService(UserRepository userRepo, BoardRepository boardRepo) {
+    public BoardService(UserRepository userRepo, BoardRepository boardRepo, NotificationService notificationService) {
         this.userRepo = userRepo;
         this.boardRepo = boardRepo;
+        this.notificationService = notificationService; // TESTING
     }
 
     // validation calls
@@ -93,6 +96,16 @@ public class BoardService {
         Board savedBoard = boardRepo.save(newBoard);
 
         BoardDTO boardDTO = new BoardDTO(savedBoard, owner.getUsername());
+
+        // TESTING RN - Need to send invitation to the user where you then send notification
+        for (User user : collaboratorUsers) {
+            notificationService.sendNotification(
+                owner.getUserid(),
+                user.getUserid(),
+                NotificationType.BOARD_INVITATION,
+                savedBoard
+            );
+        }
 
         res = new Response<>(200, "Board is successfully created", boardDTO);
         return res;

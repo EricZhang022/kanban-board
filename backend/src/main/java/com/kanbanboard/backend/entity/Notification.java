@@ -30,6 +30,11 @@ public class Notification {
     @ManyToOne
     @JoinColumn(name = "sender_id")
     private User sender;
+
+    @ManyToOne
+    @JoinColumn(name = "board_id")
+    private Board board;
+
     private boolean read = false;
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -67,6 +72,14 @@ public class Notification {
     }
     public void setSender(User sender) {
         this.sender = sender;
+    }
+
+    // board
+    public Board getBoard() {
+        return board;
+    }
+    public void setBoard(Board board) {
+        this.board = board;
     }
 
     // read
