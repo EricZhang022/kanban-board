@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import com.kanbanboard.backend.entity.BoardInvitation;
 import com.kanbanboard.backend.entity.Notification;
 import com.kanbanboard.backend.entity.User;
 
@@ -27,4 +28,5 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     void markAllAsRead(User recipient);
     Optional<Notification> findByNotificationIdAndRecipient(UUID notificationId, User recipient);
     Optional<Notification> findByNotificationIdAndRecipientAndReadTrue(UUID notificationId, User recipient);
+    Optional<Notification> findByInvitation(BoardInvitation invitation);
 }

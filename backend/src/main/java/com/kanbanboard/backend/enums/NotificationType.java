@@ -2,6 +2,8 @@ package com.kanbanboard.backend.enums;
 
 public enum NotificationType {
     BOARD_INVITATION,
+    BOARD_INVITATION_ACCEPTED,
+    BOARD_INVITATION_DECLINED,
     TASK_ASSIGNED,
     MENTION,
     COMMENT_REPLY,

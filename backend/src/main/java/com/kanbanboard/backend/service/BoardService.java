@@ -10,21 +10,25 @@ import com.kanbanboard.backend.dto.BoardDTO;
 import com.kanbanboard.backend.dto.CreateBoardRequest;
 import com.kanbanboard.backend.dto.Response;
 import com.kanbanboard.backend.entity.Board;
+import com.kanbanboard.backend.entity.BoardInvitation;
 import com.kanbanboard.backend.entity.User;
 import com.kanbanboard.backend.enums.NotificationType;
 import com.kanbanboard.backend.repo.BoardRepository;
+import com.kanbanboard.backend.repo.InvitationRepository;
 import com.kanbanboard.backend.repo.UserRepository;
 
 @Service
 public class BoardService {
-    private final NotificationService notificationService; // TESTING
+    private final NotificationService notificationService;
     private final UserRepository userRepo;
     private final BoardRepository boardRepo;
+    private final InvitationRepository invitationRepo;
 
-    public BoardService(UserRepository userRepo, BoardRepository boardRepo, NotificationService notificationService) {
+    public BoardService(UserRepository userRepo, BoardRepository boardRepo, NotificationService notificationService, InvitationRepository invitationRepo) {
         this.userRepo = userRepo;
         this.boardRepo = boardRepo;
-        this.notificationService = notificationService; // TESTING
+        this.notificationService = notificationService;
+        this.invitationRepo = invitationRepo;
     }
 
     // validation calls
@@ -92,20 +96,27 @@ public class BoardService {
             }
         }
 
-        Board newBoard = new Board(boardName, owner, collaboratorUsers);
+        // Create board with only the owner
+        Board newBoard = new Board(boardName, owner, new ArrayList<>());
         Board savedBoard = boardRepo.save(newBoard);
 
-        BoardDTO boardDTO = new BoardDTO(savedBoard, owner.getUsername());
-
-        // TESTING RN - Need to send invitation to the user where you then send notification
+        // Create invitations
         for (User user : collaboratorUsers) {
+
+            BoardInvitation invitation = new BoardInvitation(savedBoard, owner, user);
+
+            invitationRepo.save(invitation);
+
             notificationService.sendNotification(
                 owner.getUserid(),
                 user.getUserid(),
                 NotificationType.BOARD_INVITATION,
-                savedBoard
+                savedBoard,
+                invitation
             );
         }
+
+        BoardDTO boardDTO = new BoardDTO(savedBoard, owner.getUsername());
 
         res = new Response<>(200, "Board is successfully created", boardDTO);
         return res;

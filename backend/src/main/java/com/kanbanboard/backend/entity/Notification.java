@@ -38,7 +38,11 @@ public class Notification {
     private boolean read = false;
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    protected Notification() {}
+    @ManyToOne
+    @JoinColumn(name = "invitation_id")
+    private BoardInvitation invitation;
+
+    public Notification() {}
 
     public Notification(User recipient, NotificationType type) {
         this.recipient = recipient;
@@ -93,5 +97,13 @@ public class Notification {
     // createdAt
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    // invitation
+    public BoardInvitation getInvitation() {
+        return invitation;
+    }
+    public void setInvitation(BoardInvitation invitation) {
+        this.invitation = invitation;
     }
 }

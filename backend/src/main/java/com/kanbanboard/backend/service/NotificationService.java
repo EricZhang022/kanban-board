@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.kanbanboard.backend.dto.NotificationDTO;
 import com.kanbanboard.backend.dto.Response;
 import com.kanbanboard.backend.entity.Board;
+import com.kanbanboard.backend.entity.BoardInvitation;
 import com.kanbanboard.backend.entity.Notification;
 import com.kanbanboard.backend.entity.User;
 import com.kanbanboard.backend.enums.NotificationType;
@@ -55,7 +56,8 @@ public class NotificationService {
         
     }
 
-    public Response<NotificationDTO> sendNotification(UUID senderId, UUID recipientId, NotificationType type, Board board) {
+    @Transactional
+    public Response<NotificationDTO> sendNotification(UUID senderId, UUID recipientId, NotificationType type, Board board, BoardInvitation boardInvitation) {
         User sender = userRepo.findById(senderId)
             .orElseThrow(() -> new RuntimeException("Sender not found on sending notification"));
 
@@ -65,6 +67,7 @@ public class NotificationService {
         Notification notif = new Notification(recipient, type);
         notif.setSender(sender);
         notif.setBoard(board);
+        notif.setInvitation(boardInvitation);
 
         notifRepo.save(notif);
         NotificationDTO notifDTO = new NotificationDTO(notif);

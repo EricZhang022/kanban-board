@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 interface User {
     userId: string;
@@ -38,6 +38,8 @@ interface Notification {
     board: Board | null;
     read: boolean;
     createdAt: string;
+    invitationId: string | null;
+    invitationStatus: "PENDING" | "ACCEPTED" | "DECLINED" | null;
 }
 
 function getNotificationMessage(notification: Notification) {
@@ -55,7 +57,21 @@ function getNotificationMessage(notification: Notification) {
 
     switch (notification.type) {
         case "BOARD_INVITATION":
-            return `${sender} invited you to a board named ${board} to be a ${role}.`;
+            if (notification.invitationStatus === "ACCEPTED") {
+                return `You accepted an invitation from ${sender} to join "${board}."`;
+            }
+
+            if (notification.invitationStatus === "DECLINED") {
+                return `You declined an invitation from ${sender} to join "${board}."`;
+            }
+
+            return `${sender} invited you to a board named "${board}" to be a ${role}.`;
+
+        case "BOARD_INVITATION_ACCEPTED":
+            return `${sender} accepted your invitation to join "${board}".`;
+
+        case "BOARD_INVITATION_DECLINED":
+            return `${sender} declined your invitation to join "${board}".`;
 
         case "TASK_ASSIGNED":
             return `${sender} assigned you a task.`;
@@ -184,6 +200,42 @@ function Notifications() {
         );
     };
 
+    const acceptInvitation = async (invitationId: string) => {
+        const response = await fetch(
+            `http://localhost:8080/api/invitations/accept/${invitationId}`,
+            {
+                method: "POST",
+                credentials: "include",
+            }
+        );
+
+        if (!response.ok) {
+            console.error("Failed to accept invitation");
+            return;
+        }
+
+        // Reload notifications
+        fetchNotifications();
+    };
+
+    const declineInvitation = async (invitationId: string) => {
+        const response = await fetch(
+            `http://localhost:8080/api/invitations/decline/${invitationId}`,
+            {
+                method: "POST",
+                credentials: "include",
+            }
+        );
+
+        if (!response.ok) {
+            console.error("Failed to decline invitation");
+            return;
+        }
+
+        // Reload notifications
+        fetchNotifications();
+    };
+
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
             <div className="flex justify-between items-center mb-4 sm:mb-6">
@@ -219,7 +271,7 @@ function Notifications() {
                             <div
                                 key={notification.notificationId}
                                 onClick={() => {
-                                    if (!notification.read) {
+                                    if (notification.type !== "BOARD_INVITATION" && !notification.read) {
                                         markAsRead(notification.notificationId);
                                     }
                                 }}
@@ -240,6 +292,32 @@ function Notifications() {
                                                 notification.createdAt
                                             ).toLocaleString()}
                                         </span>
+
+                                        {notification.type === "BOARD_INVITATION" && 
+                                            notification.invitationStatus === "PENDING" && 
+                                            notification.invitationId && (
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        acceptInvitation(notification.invitationId!);
+                                                    }}
+                                                    className="text-green-600 hover:text-green-800 transition cursor-pointer"
+                                                >
+                                                    <Check size={18} />
+                                                </button>
+
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        declineInvitation(notification.invitationId!);
+                                                    }}
+                                                    className="text-red-500 hover:text-red-700 transition cursor-pointer"
+                                                >
+                                                    <X size={18} />
+                                                </button>
+                                            </div>
+                                        )}
 
                                         {notification.read && (
                                             <button
