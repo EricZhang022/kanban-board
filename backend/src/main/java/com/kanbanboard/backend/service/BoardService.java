@@ -296,6 +296,8 @@ public class BoardService {
         // Remove users no longer requested
         currBoard.setCollaborators(updatedCollaborators);
 
+        List<String> successfullyInvited = new ArrayList<>();
+
         // Send invitations to new users
         for (User user : usersToInvite) {
 
@@ -322,6 +324,8 @@ public class BoardService {
                 currBoard,
                 invitation
             );
+
+            successfullyInvited.add(user.getUsername());
         }
 
         List<User> removedCollaborators = currentCollaborators.stream()
@@ -347,7 +351,16 @@ public class BoardService {
 
         BoardDTO boardDTO = new BoardDTO(currBoard, currUser.getUsername());
 
-        res = new Response<>(200, "Board collaborators successfully updated", boardDTO);
+        String message;
+
+        if (successfullyInvited.isEmpty()) {
+            message = "Board collaborators successfully updated";
+        } else {
+            message = "Board collaborators successfully updated. Invitations sent to: "
+                + String.join(", ", successfullyInvited);
+        }
+
+        res = new Response<>(200, message, boardDTO);
         return res;
     }
 

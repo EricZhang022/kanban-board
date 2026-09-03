@@ -34,7 +34,8 @@ function BoardPage() {
     const [newName, setNewName] = useState("");
     const [newCollaborators, setNewCollaborators] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
-    const [collaboratorErrorMessage, setCollaboratorErrorMessage] = useState("");
+    const [collaboratorMessage, setCollaboratorMessage] = useState("");
+    const [collaboratorSuccess, setCollaboratorSuccess] = useState(false);
 
     //For Columns and Cards
     const [newColName, setNewColName] = useState("");
@@ -108,7 +109,7 @@ function BoardPage() {
 
     const handleEditCollaboratorsSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setCollaboratorErrorMessage("");
+        setCollaboratorMessage("");
 
         const collaborators = newCollaborators
             .split(",")
@@ -124,11 +125,14 @@ function BoardPage() {
 
         const data = await res.json();
 
+        setCollaboratorMessage(data.message);
+
         if (!res.ok) {
-            setCollaboratorErrorMessage(data.message);
+            setCollaboratorSuccess(false);
             return;
         }
 
+        setCollaboratorSuccess(true);
         setBoard(data.data);
         setEditingCollaborators(false);
     };
@@ -327,10 +331,10 @@ function BoardPage() {
                             onChange={(e) => setNewCollaborators(e.target.value)}
                             className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                         />
-                        <button type="submit" className="bg-cyan-500 text-white px-4 py-2 rounded-md font-medium hover:bg-cyan-400 transition cursor-pointer">
+                        <button type="submit" onClick={() => setNewCollaborators(board.collaborators.join(", "))}className="bg-cyan-500 text-white px-4 py-2 rounded-md font-medium hover:bg-cyan-400 transition cursor-pointer">
                             Save
                         </button>
-                        <button type="button" onClick={() => {setEditingCollaborators(false); setCollaboratorErrorMessage(""); setNewCollaborators(board.collaborators.join(", "));}} className="px-4 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition cursor-pointer">
+                        <button type="button" onClick={() => {setEditingCollaborators(false); setCollaboratorMessage(""); setNewCollaborators(board.collaborators.join(", "));}} className="px-4 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition cursor-pointer">
                             Cancel
                         </button>
                     </form>
@@ -346,7 +350,7 @@ function BoardPage() {
                             </p>
                         )}
                         {board.role === "owner" && (
-                            <button onClick={() => setEditingCollaborators(true)} className="text-sm text-cyan-600 hover:underline cursor-pointer">
+                            <button onClick={() => {setEditingCollaborators(true); setCollaboratorMessage("");}} className="text-sm text-cyan-600 hover:underline cursor-pointer">
                                 Edit
                             </button>
                         )}
@@ -354,7 +358,7 @@ function BoardPage() {
                     </div>
                 )}
 
-                {collaboratorErrorMessage && <p className="text-red-500 text-sm mt-2">{collaboratorErrorMessage}</p>}
+                {collaboratorMessage &&  <p className={collaboratorSuccess ? "text-green-500 text-sm mt-2" : "text-red-500 text-sm mt-2"}>{collaboratorMessage}</p>}
 
             </div>
 
