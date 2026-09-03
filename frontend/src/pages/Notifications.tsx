@@ -72,6 +72,9 @@ function getNotificationMessage(notification: Notification) {
 
         case "BOARD_INVITATION_DECLINED":
             return `${sender} declined your invitation to join "${board}".`;
+            
+        case "COLLABORATOR_REMOVED":
+            return `You were removed as a ${role} from the board "${board}".`
 
         case "TASK_ASSIGNED":
             return `${sender} assigned you a task.`;

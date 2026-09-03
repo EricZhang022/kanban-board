@@ -1,8 +1,11 @@
 package com.kanbanboard.backend.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -12,6 +15,7 @@ import com.kanbanboard.backend.dto.Response;
 import com.kanbanboard.backend.entity.Board;
 import com.kanbanboard.backend.entity.BoardInvitation;
 import com.kanbanboard.backend.entity.User;
+import com.kanbanboard.backend.enums.InvitationStatus;
 import com.kanbanboard.backend.enums.NotificationType;
 import com.kanbanboard.backend.repo.BoardRepository;
 import com.kanbanboard.backend.repo.InvitationRepository;
@@ -57,7 +61,16 @@ public class BoardService {
 
     public List<User> validCollaborators(List<String> collaborators) {
         List<User> users = new ArrayList<>();
+        Set<String> usernames = new HashSet<>();
+
         for (String currUsername : collaborators) {
+
+            if (!usernames.add(currUsername)) {
+                throw new RuntimeException(
+                    "Duplicate collaborator: " + currUsername
+                );
+            }
+
             User currUser = userRepo.findByUsername(currUsername)
                 .orElseThrow(() -> new RuntimeException("Collaborator not found: " + currUsername));
             users.add(currUser);
@@ -259,7 +272,77 @@ public class BoardService {
             }
         }
 
-        currBoard.setCollaborators(collaboratorUsers);
+        // Get the current collaborators of the board
+        List<User> currentCollaborators = currBoard.getCollaborators();
+
+        // Find the new collaborators to be able to invite them
+        List<User> usersToInvite = collaboratorUsers.stream()
+            .filter(user -> currentCollaborators.stream()
+                .noneMatch(existing ->
+                    existing.getUserid().equals(user.getUserid())
+                )
+            )
+            .toList();
+
+        // Keep only collaborators that are still in the requested list
+        List<User> updatedCollaborators = currentCollaborators.stream()
+            .filter(existing ->
+                collaboratorUsers.stream().anyMatch(user ->
+                    user.getUserid().equals(existing.getUserid())
+                )
+            )
+            .collect(Collectors.toList());
+
+        // Remove users no longer requested
+        currBoard.setCollaborators(updatedCollaborators);
+
+        // Send invitations to new users
+        for (User user : usersToInvite) {
+
+            // Prevent sending a duplicate invitation if user already has a pending one
+            boolean alreadyHasPendingInvitation =
+                invitationRepo.existsByBoardAndRecipientAndStatus(
+                    currBoard,
+                    user,
+                    InvitationStatus.PENDING
+                );
+            
+            if (alreadyHasPendingInvitation) {
+                continue;
+            }
+
+            BoardInvitation invitation = new BoardInvitation(currBoard, currBoard.getOwner(), user);
+
+            invitationRepo.save(invitation);
+
+            notificationService.sendNotification(
+                currBoard.getOwner().getUserid(),
+                user.getUserid(),
+                NotificationType.BOARD_INVITATION,
+                currBoard,
+                invitation
+            );
+        }
+
+        List<User> removedCollaborators = currentCollaborators.stream()
+            .filter(existing ->
+                collaboratorUsers.stream().noneMatch(newUser ->
+                    newUser.getUserid().equals(existing.getUserid())
+                )
+            )
+            .toList();
+
+        // Send notification to removed collaborators to let them know they've been removed
+        for (User removedUser : removedCollaborators) {
+            notificationService.sendNotification(
+                currUser.getUserid(),
+                removedUser.getUserid(),
+                NotificationType.COLLABORATOR_REMOVED,
+                currBoard,
+                null
+            );
+        }
+
         boardRepo.save(currBoard);
 
         BoardDTO boardDTO = new BoardDTO(currBoard, currUser.getUsername());
