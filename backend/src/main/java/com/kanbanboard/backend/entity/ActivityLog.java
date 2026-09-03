@@ -24,8 +24,9 @@ public class ActivityLog {
         move_card,
         delete_card,
         create_column,
-        edit_card_description,
-        assign_card,
+        update_card,
+        reorder_column,
+        delete_column
 
     }
 

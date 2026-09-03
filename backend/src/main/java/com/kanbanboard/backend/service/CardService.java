@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.kanbanboard.activitydetails.createCardLog;
 import com.kanbanboard.backend.dto.CardDTO;
 import com.kanbanboard.backend.dto.CreateCardRequest;
 import com.kanbanboard.backend.dto.MoveCardRequest;
@@ -17,6 +16,12 @@ import com.kanbanboard.backend.entity.ActivityLog.ActionType;
 import com.kanbanboard.backend.repo.BoardColumnRepository;
 import com.kanbanboard.backend.repo.CardRepository;
 import com.kanbanboard.backend.repo.UserRepository;
+
+import com.kanbanboard.activitydetails.CreateCardLog;
+import com.kanbanboard.activitydetails.DeleteCardLog;
+import com.kanbanboard.activitydetails.MoveCardLog;
+import com.kanbanboard.activitydetails.UpdateCardLog;
+
 
 @Service
 public class CardService {
@@ -63,7 +68,7 @@ public class CardService {
         CardDTO cardDTO = new CardDTO(savedCard);
 
 
-        createCardLog c = new createCardLog(card.getCardId(), columnId);
+        CreateCardLog c = new CreateCardLog(title, columnRepo.getReferenceById(columnId).getName());
         activityLogService.logActivity(board, (userRepo.findById(userId)).orElse(null), ActionType.create_card, c);
 
         res = new Response<>(200, "Card created successfully", cardDTO);
@@ -83,12 +88,18 @@ public class CardService {
         }
 
         Board board = card.getColumn().getBoard();
+        String cardName = card.getTitle();
         if (!boardService.hasAccess(board, userId)) {
             res = new Response<>(403, "You do not have access to delete this card");
             return res;
         }
 
         cardRepo.deleteById(cardId);
+
+        DeleteCardLog d = new DeleteCardLog(cardName);
+        activityLogService.logActivity(board, (userRepo.findById(userId)).orElse(null), ActionType.delete_card, d);
+
+
         res = new Response<>(200, "Card deleted successfully");
         return res;
     }
@@ -116,6 +127,11 @@ public class CardService {
         Card savedCard = cardRepo.save(card);
 
         CardDTO cardDTO = new CardDTO(savedCard);
+
+        UpdateCardLog u = new UpdateCardLog(request.getTitle(), card.getColumn().getName());
+        activityLogService.logActivity(board, (userRepo.findById(userId)).orElse(null), ActionType.update_card, u);
+
+
         res = new Response<>(200, "Card updated successfully", cardDTO);
         return res;
     }
@@ -153,6 +169,11 @@ public class CardService {
         Card savedCard = cardRepo.save(card);
 
         CardDTO cardDTO = new CardDTO(savedCard);
+
+        UpdateCardLog u = new UpdateCardLog(card.getTitle(), targetCol.getName());
+        activityLogService.logActivity(originalBoard, (userRepo.findById(userId)).orElse(null), ActionType.move_card, u);
+
+
         res = new Response<>(200, "Card moved successfully", cardDTO);
         return res;
     }

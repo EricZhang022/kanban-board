@@ -9,7 +9,7 @@ import javax.management.RuntimeErrorException;
 
 import org.springframework.stereotype.Service;
 
-import com.kanbanboard.activitydetails.createCardLog;
+import com.kanbanboard.activitydetails.CreateCardLog;
 import com.kanbanboard.backend.dto.ActivityLogDTO;
 import com.kanbanboard.backend.dto.Response;
 import com.kanbanboard.backend.entity.ActivityLog;
@@ -67,7 +67,7 @@ public class ActivityLogService {
         for (ActivityLog a : getAllLogs){
             String summary = "";
             if (a.getActionType() == (ActionType.create_card)){ //gonna implement this with switch later
-                createCardLog obj = objectMapper.readValue(a.getDetails(), createCardLog.class);//turning jsonb string back into an obj
+                CreateCardLog obj = objectMapper.readValue(a.getDetails(), CreateCardLog.class);//turning jsonb string back into an obj
                 String cardName = cardRepo.getReferenceById(obj.getCardID()).getTitle();
                 String columnName = columnRepo.getReferenceById(obj.getColumnID()).getName();
                 summary = "Created a card named " + cardName + " in " + columnName;
