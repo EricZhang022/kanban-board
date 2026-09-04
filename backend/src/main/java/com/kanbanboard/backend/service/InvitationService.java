@@ -1,5 +1,6 @@
 package com.kanbanboard.backend.service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -42,6 +43,13 @@ public class InvitationService {
             return new Response<>(403, "You are not authorized to accept this invitation");
         }
 
+        // Check expiration before accepting
+        if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            invitation.setStatus(InvitationStatus.EXPIRED);
+            invitationRepo.save(invitation);
+            return new Response<>(400, "This invitation has expired");
+        }
+
         // Prevent accepting twice
         if (invitation.getStatus() != InvitationStatus.PENDING) {
             return new Response<>(400, "This invitation is no longer pending");
@@ -79,17 +87,19 @@ public class InvitationService {
 
         // Verify recipient
         if (!invitation.getRecipient().getUserid().equals(userId)) {
-            return new Response<>(
-                403,
-                "You are not authorized to decline this invitation"
-            );
+            return new Response<>(403, "You are not authorized to decline this invitation");
         }
 
+        // Check expiration before declining
+        if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            invitation.setStatus(InvitationStatus.EXPIRED);
+            invitationRepo.save(invitation);
+            return new Response<>(400, "This invitation has expired");
+        }
+
+        // Prevent declining twice
         if (invitation.getStatus() != InvitationStatus.PENDING) {
-            return new Response<>(
-                400,
-                "This invitation is no longer pending"
-            );
+            return new Response<>(400, "This invitation is no longer pending");
         }
 
         // Update invitation status

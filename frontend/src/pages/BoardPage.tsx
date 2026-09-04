@@ -331,7 +331,7 @@ function BoardPage() {
                             onChange={(e) => setNewCollaborators(e.target.value)}
                             className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                         />
-                        <button type="submit" onClick={() => setNewCollaborators(board.collaborators.join(", "))}className="bg-cyan-500 text-white px-4 py-2 rounded-md font-medium hover:bg-cyan-400 transition cursor-pointer">
+                        <button type="submit" className="bg-cyan-500 text-white px-4 py-2 rounded-md font-medium hover:bg-cyan-400 transition cursor-pointer">
                             Save
                         </button>
                         <button type="button" onClick={() => {setEditingCollaborators(false); setCollaboratorMessage(""); setNewCollaborators(board.collaborators.join(", "));}} className="px-4 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition cursor-pointer">

@@ -1,5 +1,6 @@
 package com.kanbanboard.backend.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,7 +20,10 @@ import com.kanbanboard.backend.enums.InvitationStatus;
 import com.kanbanboard.backend.enums.NotificationType;
 import com.kanbanboard.backend.repo.BoardRepository;
 import com.kanbanboard.backend.repo.InvitationRepository;
+import com.kanbanboard.backend.repo.NotificationRepository;
 import com.kanbanboard.backend.repo.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class BoardService {
@@ -27,12 +31,14 @@ public class BoardService {
     private final UserRepository userRepo;
     private final BoardRepository boardRepo;
     private final InvitationRepository invitationRepo;
+    private final NotificationRepository notifRepo;
 
-    public BoardService(UserRepository userRepo, BoardRepository boardRepo, NotificationService notificationService, InvitationRepository invitationRepo) {
+    public BoardService(UserRepository userRepo, BoardRepository boardRepo, NotificationService notificationService, InvitationRepository invitationRepo, NotificationRepository notifRepo) {
         this.userRepo = userRepo;
         this.boardRepo = boardRepo;
         this.notificationService = notificationService;
         this.invitationRepo = invitationRepo;
+        this.notifRepo = notifRepo;
     }
 
     // validation calls
@@ -192,6 +198,7 @@ public class BoardService {
     }
 
     // change Board Name
+    @Transactional 
     public Response<BoardDTO> changeBoardName(UUID boardId, UUID userId, String newBoardName) {
         Response<BoardDTO> res;
         Board currBoard;
@@ -229,6 +236,7 @@ public class BoardService {
     }
 
     // change Collaborators
+    @Transactional 
     public Response<BoardDTO> changeCollaborators(UUID boardId, UUID userId, List<String> newCollaborators) {
         Response<BoardDTO> res;
         Board currBoard;
@@ -273,7 +281,7 @@ public class BoardService {
         }
 
         // Get the current collaborators of the board
-        List<User> currentCollaborators = currBoard.getCollaborators();
+        List<User> currentCollaborators = new ArrayList<>(currBoard.getCollaborators());
 
         // Find the new collaborators to be able to invite them
         List<User> usersToInvite = collaboratorUsers.stream()
@@ -303,10 +311,11 @@ public class BoardService {
 
             // Prevent sending a duplicate invitation if user already has a pending one
             boolean alreadyHasPendingInvitation =
-                invitationRepo.existsByBoardAndRecipientAndStatus(
+                invitationRepo.existsByBoardAndRecipientAndStatusAndExpiresAtAfter(
                     currBoard,
                     user,
-                    InvitationStatus.PENDING
+                    InvitationStatus.PENDING,
+                    LocalDateTime.now()
                 );
             
             if (alreadyHasPendingInvitation) {
@@ -364,11 +373,12 @@ public class BoardService {
         return res;
     }
 
+    @Transactional 
     public Response<String> deleteABoard(UUID boardId, UUID userId) {
         Response<String> res;
         Board currBoard;
 
-        //validate board first
+        // Validate board first
         try {
             currBoard = boardRepo.findById(boardId)
                 .orElseThrow(() -> new RuntimeException("Board does not exist on deleting a board"));
@@ -384,7 +394,13 @@ public class BoardService {
             return res;
         }
 
-        // delete the board
+        // 1. Delete notifications referencing this board's invitations
+        notifRepo.deleteByBoardInvitations(currBoard);
+
+        // 2. Delete invitations associated with this board
+        invitationRepo.deleteByBoard(currBoard);
+
+        // 3. Finally, delete the board
         boardRepo.delete(currBoard);
         res = new Response<>(200, "Board is successfully deleted");
         return res;

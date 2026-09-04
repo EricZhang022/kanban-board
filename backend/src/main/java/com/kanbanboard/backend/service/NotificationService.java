@@ -82,7 +82,7 @@ public class NotificationService {
                 "Recipient not found on marking notifications as read"
             ));
 
-        notifRepo.markAllAsRead(recipient);
+        notifRepo.markAllAsRead(recipient, NotificationType.BOARD_INVITATION);
 
         return new Response<>(200, "All notifications successfully marked as read");
     }

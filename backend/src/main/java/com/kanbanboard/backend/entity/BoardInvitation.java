@@ -40,6 +40,8 @@ public class BoardInvitation {
 
     private LocalDateTime createdAt;
 
+    private LocalDateTime expiresAt;
+
     public BoardInvitation() {}
 
     public BoardInvitation(Board board, User sender, User recipient) {
@@ -47,7 +49,10 @@ public class BoardInvitation {
         this.sender = sender;
         this.recipient = recipient;
         this.status = InvitationStatus.PENDING;
-        this.createdAt = LocalDateTime.now();
+
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.expiresAt = now.plusDays(1);
     }
 
     public UUID getInvitationId() {
@@ -89,5 +94,10 @@ public class BoardInvitation {
     // createdAt
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    // expiresAt
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
     }
 }

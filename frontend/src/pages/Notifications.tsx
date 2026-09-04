@@ -39,7 +39,7 @@ interface Notification {
     read: boolean;
     createdAt: string;
     invitationId: string | null;
-    invitationStatus: "PENDING" | "ACCEPTED" | "DECLINED" | null;
+    invitationStatus: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | null;
 }
 
 function getNotificationMessage(notification: Notification) {
@@ -63,6 +63,10 @@ function getNotificationMessage(notification: Notification) {
 
             if (notification.invitationStatus === "DECLINED") {
                 return `You declined an invitation from ${sender} to join "${board}."`;
+            }
+
+            if (notification.invitationStatus === "EXPIRED") {
+                return `The invitation to join "${board} has expired.`;
             }
 
             return `${sender} invited you to a board named "${board}" to be a ${role}.`;
@@ -118,11 +122,13 @@ function Notifications() {
             return;
         }
 
+        // Mark all notifications as read except board invitations
         setNotifications((prev) =>
-            prev.map((notification) => ({
-                ...notification,
-                read: true,
-            }))
+            prev.map((notification) =>
+                notification.type === "BOARD_INVITATION"
+                    ? notification
+                    : { ...notification, read: true }
+            )
         );
     };
 
@@ -213,7 +219,7 @@ function Notifications() {
         );
 
         if (!response.ok) {
-            console.error("Failed to accept invitation");
+            fetchNotifications();
             return;
         }
 
@@ -231,7 +237,7 @@ function Notifications() {
         );
 
         if (!response.ok) {
-            console.error("Failed to decline invitation");
+            fetchNotifications();
             return;
         }
 
