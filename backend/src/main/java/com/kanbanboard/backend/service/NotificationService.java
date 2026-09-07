@@ -29,6 +29,15 @@ public class NotificationService {
         this.notifRepo = notifRepo;
     }
 
+    public Response<Long> getUnreadNotificationCount(UUID userId) {
+        User recipient = userRepo.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found on getting unread notification count"));
+
+        long unreadCount = notifRepo.countByRecipientAndReadFalse(recipient);
+
+        return new Response<>(200, "Unread notification count successfully retrieved", unreadCount);
+    }
+
     public Response<List<NotificationDTO>> fetchAllNotifications(UUID userId) {
         User recipient = userRepo.findById(userId)
             .orElseThrow(() -> new RuntimeException("Recipient not found on getting notifications"));

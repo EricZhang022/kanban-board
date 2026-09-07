@@ -43,16 +43,24 @@ public class InvitationService {
             return new Response<>(403, "You are not authorized to accept this invitation");
         }
 
-        // Check expiration before accepting
-        if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
-            invitation.setStatus(InvitationStatus.EXPIRED);
-            invitationRepo.save(invitation);
-            return new Response<>(400, "This invitation has expired");
-        }
+        Notification notification = notifRepo.findByInvitationAndType(invitation, NotificationType.BOARD_INVITATION)
+            .orElseThrow(() -> new RuntimeException("Notification not found"));
 
         // Prevent accepting twice
         if (invitation.getStatus() != InvitationStatus.PENDING) {
             return new Response<>(400, "This invitation is no longer pending");
+        }
+
+        // Check expiration before accepting
+        if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            invitation.setStatus(InvitationStatus.EXPIRED);
+
+            // User interacted with it, so mark notification as read
+            notification.setRead(true);
+
+            invitationRepo.save(invitation);
+            notifRepo.save(notification);
+            return new Response<>(400, "This invitation has expired");
         }
 
         Board board = invitation.getBoard();
@@ -64,9 +72,7 @@ public class InvitationService {
         // Update invitation status
         invitation.setStatus(InvitationStatus.ACCEPTED);
 
-        Notification notification = notifRepo.findByInvitation(invitation)
-            .orElseThrow(() -> new RuntimeException("Notification not found"));
-
+        // Mark notification as read after accepting
         notification.setRead(true);
 
         boardRepo.save(board);
@@ -90,10 +96,18 @@ public class InvitationService {
             return new Response<>(403, "You are not authorized to decline this invitation");
         }
 
+        Notification notification = notifRepo.findByInvitationAndType(invitation, NotificationType.BOARD_INVITATION)
+            .orElseThrow(() -> new RuntimeException("Notification not found"));
+
         // Check expiration before declining
         if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
             invitation.setStatus(InvitationStatus.EXPIRED);
+
+            // User interacted with it, so mark notification as read
+            notification.setRead(true);
+
             invitationRepo.save(invitation);
+            notifRepo.save(notification);
             return new Response<>(400, "This invitation has expired");
         }
 
@@ -105,9 +119,7 @@ public class InvitationService {
         // Update invitation status
         invitation.setStatus(InvitationStatus.DECLINED);
 
-        Notification notification = notifRepo.findByInvitation(invitation)
-            .orElseThrow(() -> new RuntimeException("Notification not found"));
-
+        // Mark notification as read after declining    
         notification.setRead(true);
 
         invitationRepo.save(invitation);

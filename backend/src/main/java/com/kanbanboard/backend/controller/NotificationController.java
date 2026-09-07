@@ -26,6 +26,16 @@ public class NotificationController {
         this.notificationService = notificationService;
     }
 
+    @GetMapping("/unread-count")
+    public ResponseEntity<Response<Long>> getUnreadNotificationCount(Authentication auth) {
+        UUID userId = UUID.fromString(auth.getName());
+
+        Response<Long> res = notificationService.getUnreadNotificationCount(userId);
+
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+
     @GetMapping
     public ResponseEntity<Response<List<NotificationDTO>>> fetchNotifications(Authentication auth) {
         UUID userId = UUID.fromString(auth.getName());

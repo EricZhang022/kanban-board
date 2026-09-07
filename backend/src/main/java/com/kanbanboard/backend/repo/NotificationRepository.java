@@ -31,7 +31,7 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     void markAllAsRead(User recipient, NotificationType excludedType);
     Optional<Notification> findByNotificationIdAndRecipient(UUID notificationId, User recipient);
     Optional<Notification> findByNotificationIdAndRecipientAndReadTrue(UUID notificationId, User recipient);
-    Optional<Notification> findByInvitation(BoardInvitation invitation);
+    Optional<Notification> findByInvitationAndType(BoardInvitation invitation, NotificationType type);
 
     @Modifying
     @Query("""

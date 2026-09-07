@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
+import { useNotificationContext } from "../context/NotificationContext";
 
 interface User {
     userId: string;
@@ -94,6 +95,7 @@ function getNotificationMessage(notification: Notification) {
 function Notifications() {
 
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const { refreshUnreadCount } = useNotificationContext();
 
     const fetchNotifications = async () => {
         const res = await fetch("http://localhost:8080/api/notifications", {
@@ -130,6 +132,8 @@ function Notifications() {
                     : { ...notification, read: true }
             )
         );
+
+        await refreshUnreadCount();
     };
 
     const markAsRead = async (notificationId: string) => {
@@ -166,6 +170,8 @@ function Notifications() {
                 );
             });
         });
+
+        await refreshUnreadCount();
     };
 
     const deleteAllReadNotifications = async () => {
@@ -219,12 +225,14 @@ function Notifications() {
         );
 
         if (!response.ok) {
-            fetchNotifications();
+            await fetchNotifications();
             return;
         }
 
-        // Reload notifications
-        fetchNotifications();
+        await Promise.all([
+            fetchNotifications(),
+            refreshUnreadCount(),
+        ]);
     };
 
     const declineInvitation = async (invitationId: string) => {
@@ -237,12 +245,14 @@ function Notifications() {
         );
 
         if (!response.ok) {
-            fetchNotifications();
+            await fetchNotifications();
             return;
         }
 
-        // Reload notifications
-        fetchNotifications();
+        await Promise.all([
+            fetchNotifications(),
+            refreshUnreadCount(),
+        ]);
     };
 
     return (
@@ -312,6 +322,7 @@ function Notifications() {
                                                         acceptInvitation(notification.invitationId!);
                                                     }}
                                                     className="text-green-600 hover:text-green-800 transition cursor-pointer"
+                                                    title="Accept"
                                                 >
                                                     <Check size={18} />
                                                 </button>
@@ -322,6 +333,7 @@ function Notifications() {
                                                         declineInvitation(notification.invitationId!);
                                                     }}
                                                     className="text-red-500 hover:text-red-700 transition cursor-pointer"
+                                                    title="Decline"
                                                 >
                                                     <X size={18} />
                                                 </button>

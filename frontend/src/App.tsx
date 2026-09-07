@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute"
 import BoardPage from "./pages/BoardPage"
 import CreateBoard from "./pages/CreateBoard"
 import Notifications from "./pages/Notifications"
+import { NotificationProvider } from "./context/NotificationContext";
 
 function App() {
 
@@ -21,7 +22,9 @@ function App() {
 
         <Route element={
           <ProtectedRoute>
-            <Layout />
+            <NotificationProvider>
+              <Layout />
+            </NotificationProvider>
           </ProtectedRoute>
         }>
           <Route path="/dashboard" element={<Dashboard />} />

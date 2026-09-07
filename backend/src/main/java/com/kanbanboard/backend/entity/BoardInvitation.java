@@ -52,7 +52,7 @@ public class BoardInvitation {
 
         LocalDateTime now = LocalDateTime.now();
         this.createdAt = now;
-        this.expiresAt = now.plusDays(1);
+        this.expiresAt = now.plusDays(7);
     }
 
     public UUID getInvitationId() {

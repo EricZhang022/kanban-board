@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, Outlet } from "react-router";
 import { Bell } from "lucide-react";
+import { useNotificationContext } from "../context/NotificationContext";
 
 interface User {
     firstName: string;
@@ -14,6 +15,8 @@ function Layout() {
     const [user, setUser] = useState<User | null>(null);
     const [profileOpen, setProfileOpen] = useState(false);
     const profileRef = useRef<HTMLDivElement>(null);
+
+    const { unreadCount } = useNotificationContext();
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -92,6 +95,28 @@ function Layout() {
                         aria-label="Notifications"
                     >
                         <Bell size={24} />
+
+                        {unreadCount > 0 && (
+                            <span
+                                className="
+                                    absolute
+                                    -top-2
+                                    -right-2
+                                    bg-red-500
+                                    text-white
+                                    text-xs
+                                    rounded-full
+                                    min-w-5
+                                    h-5
+                                    flex
+                                    items-center
+                                    justify-center
+                                    px-1
+                                "
+                            >
+                                {unreadCount > 99 ? "99+" : unreadCount}
+                            </span>
+                        )}
                     </button>
 
                     <div ref={profileRef} className="relative">
