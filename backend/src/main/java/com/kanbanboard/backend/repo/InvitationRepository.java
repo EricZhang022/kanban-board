@@ -1,6 +1,7 @@
 package com.kanbanboard.backend.repo;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,9 @@ public interface InvitationRepository extends JpaRepository<BoardInvitation, UUI
         WHERE bi.board = :board
     """)
     void deleteByBoard(Board board);
+
+    List<BoardInvitation> findByBoardAndStatus(
+        Board board,
+        InvitationStatus status
+    );
 }

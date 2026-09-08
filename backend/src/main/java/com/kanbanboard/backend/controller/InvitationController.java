@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,14 @@ public class InvitationController {
     public ResponseEntity<Response<String>> declineInvitation(Authentication auth, @PathVariable UUID invitationId) {
         UUID userId = UUID.fromString(auth.getName());
         Response<String> res = invitationService.declineInvitation(userId, invitationId);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    // When the owner of a board cancels a pending invitation
+    @PatchMapping("/{invitationId}/cancel")
+    public ResponseEntity<Response<String>> cancelInvitation(Authentication auth, @PathVariable UUID invitationId) {
+        UUID userId = UUID.fromString(auth.getName());
+        Response<String> res = invitationService.cancelInvitation(userId, invitationId);
         return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 }

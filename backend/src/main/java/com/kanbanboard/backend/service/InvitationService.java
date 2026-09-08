@@ -133,4 +133,27 @@ public class InvitationService {
         return new Response<>(200, "Invitation declined");
     }
 
+    @Transactional 
+    public Response<String> cancelInvitation(UUID userId, UUID invitationId) {
+        BoardInvitation invitation = invitationRepo.findById(invitationId)
+            .orElseThrow(() -> new RuntimeException("Invitation not found"));
+
+        // Verify sender (owner)
+        if (!invitation.getSender().getUserid().equals(userId)) {
+            return new Response<>(403, "You are not authorized to cancel this invitation");
+        }
+
+        // Only pending invitations can be cancelled
+        if (invitation.getStatus() != InvitationStatus.PENDING) {
+            return new Response<>(400, "This invitation is no longer pending");
+        }
+
+        // Cancel the invitation
+        invitation.setStatus(InvitationStatus.CANCELLED);
+
+        invitationRepo.save(invitation);
+
+        return new Response<>(200, "Invitation canceled");
+    }
+
 }

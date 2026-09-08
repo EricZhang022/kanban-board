@@ -40,7 +40,7 @@ interface Notification {
     read: boolean;
     createdAt: string;
     invitationId: string | null;
-    invitationStatus: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | null;
+    invitationStatus: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "CANCELLED" | null;
 }
 
 function getNotificationMessage(notification: Notification) {
@@ -67,7 +67,11 @@ function getNotificationMessage(notification: Notification) {
             }
 
             if (notification.invitationStatus === "EXPIRED") {
-                return `The invitation to join "${board} has expired.`;
+                return `The invitation to join "${board}" has expired.`;
+            }
+
+            if (notification.invitationStatus === "CANCELLED") {
+                return `The invitation to join "${board}" was cancelled.`;
             }
 
             return `${sender} invited you to a board named "${board}" to be a ${role}.`;
@@ -126,11 +130,15 @@ function Notifications() {
 
         // Mark all notifications as read except board invitations
         setNotifications((prev) =>
-            prev.map((notification) =>
-                notification.type === "BOARD_INVITATION"
+            prev.map((notification) => {
+                const isPendingInvitation =
+                    notification.type === "BOARD_INVITATION" &&
+                    notification.invitationStatus === "PENDING";
+
+                return isPendingInvitation
                     ? notification
-                    : { ...notification, read: true }
-            )
+                    : { ...notification, read: true };
+            })
         );
 
         await refreshUnreadCount();
@@ -290,7 +298,7 @@ function Notifications() {
                             <div
                                 key={notification.notificationId}
                                 onClick={() => {
-                                    if (notification.type !== "BOARD_INVITATION" && !notification.read) {
+                                    if ((notification.type !== "BOARD_INVITATION" || (notification.invitationStatus !== "PENDING")) && !notification.read) {
                                         markAsRead(notification.notificationId);
                                     }
                                 }}

@@ -119,10 +119,14 @@ public class BoardService {
         Board newBoard = new Board(boardName, owner, new ArrayList<>());
         Board savedBoard = boardRepo.save(newBoard);
 
+        List<BoardInvitation> pendingInvitations = new ArrayList<>();
+
         // Create invitations
         for (User user : collaboratorUsers) {
 
             BoardInvitation invitation = new BoardInvitation(savedBoard, owner, user);
+
+            pendingInvitations.add(invitation);
 
             invitationRepo.save(invitation);
 
@@ -135,7 +139,7 @@ public class BoardService {
             );
         }
 
-        BoardDTO boardDTO = new BoardDTO(savedBoard, owner.getUsername());
+        BoardDTO boardDTO = new BoardDTO(savedBoard, owner.getUsername(), pendingInvitations);
 
         res = new Response<>(200, "Board is successfully created", boardDTO);
         return res;
@@ -191,8 +195,17 @@ public class BoardService {
             res = new Response<>(403, "You do not have access to this board");
             return res;
         }
+
+        List<BoardInvitation> pendingInvitations = new ArrayList<>();
+
+        if (currBoard.getOwner().getUserid().equals(userId)) {
+            pendingInvitations = invitationRepo.findByBoardAndStatus(
+                currBoard,
+                InvitationStatus.PENDING
+            );
+        }
         
-        BoardDTO currBoardDTO = new BoardDTO(currBoard, currUser.getUsername());
+        BoardDTO currBoardDTO = new BoardDTO(currBoard, currUser.getUsername(), pendingInvitations);
         res = new Response<>(200, "Successfully open this board", currBoardDTO);
         return res;
     }
@@ -291,6 +304,7 @@ public class BoardService {
                 )
             )
             .toList();
+        List<BoardInvitation> pendingInvitations = new ArrayList<>();
 
         // Keep only collaborators that are still in the requested list
         List<User> updatedCollaborators = currentCollaborators.stream()
@@ -323,6 +337,8 @@ public class BoardService {
             }
 
             BoardInvitation invitation = new BoardInvitation(currBoard, currBoard.getOwner(), user);
+
+            pendingInvitations.add(invitation);
 
             invitationRepo.save(invitation);
 
@@ -358,7 +374,7 @@ public class BoardService {
 
         boardRepo.save(currBoard);
 
-        BoardDTO boardDTO = new BoardDTO(currBoard, currUser.getUsername());
+        BoardDTO boardDTO = new BoardDTO(currBoard, currUser.getUsername(), pendingInvitations);
 
         String message;
 

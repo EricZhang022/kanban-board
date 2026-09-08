@@ -12,6 +12,7 @@ import com.kanbanboard.backend.entity.Board;
 import com.kanbanboard.backend.entity.BoardInvitation;
 import com.kanbanboard.backend.entity.Notification;
 import com.kanbanboard.backend.entity.User;
+import com.kanbanboard.backend.enums.InvitationStatus;
 import com.kanbanboard.backend.enums.NotificationType;
 import com.kanbanboard.backend.repo.NotificationRepository;
 import com.kanbanboard.backend.repo.UserRepository;
@@ -91,7 +92,19 @@ public class NotificationService {
                 "Recipient not found on marking notifications as read"
             ));
 
-        notifRepo.markAllAsRead(recipient, NotificationType.BOARD_INVITATION);
+        List<Notification> notifications = notifRepo.findByRecipient(recipient);
+
+        for (Notification notification : notifications) {
+            if (notification.getType() == NotificationType.BOARD_INVITATION
+                    && notification.getInvitation() != null
+                    && notification.getInvitation().getStatus() == InvitationStatus.PENDING) {
+                continue;
+            }
+
+            notification.setRead(true);
+        }
+
+        notifRepo.saveAll(notifications);
 
         return new Response<>(200, "All notifications successfully marked as read");
     }
