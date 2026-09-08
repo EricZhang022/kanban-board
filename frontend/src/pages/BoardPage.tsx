@@ -85,20 +85,6 @@ function BoardPage() {
         }
     };
 
-    const handleDelete = async () => {
-        const confirmed = window.confirm("Delete this board? This can't be undone.");
-        if (!confirmed) return;
-
-        const res = await fetch(`http://localhost:8080/api/board/${id}`, {
-            method: "DELETE",
-            credentials: "include",
-        });
-
-        if (res.ok) {
-            navigate("/dashboard");
-        }
-    };
-
     const handleDeleteColumn = async (columnId: string) => {
         if (!window.confirm("Delete this column?")) return;
         const res = await fetch(`http://localhost:8080/api/board/columns/${columnId}`, {
@@ -410,15 +396,6 @@ function BoardPage() {
                     </Droppable>
                 </DragDropContext>               
             </div>
-
-            {board.role === "owner" && (
-                <button
-                    onClick={handleDelete}
-                    className="text-sm text-red-500 hover:underline cursor-pointer"
-                >
-                    Delete board
-                </button>
-            )}
 
             {activeCardColId && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">

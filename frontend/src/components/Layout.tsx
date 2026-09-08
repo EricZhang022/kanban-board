@@ -74,20 +74,6 @@ function Layout() {
                     Dashboard
                 </button>
 
-                <button
-                    onClick={() => navigate("/dashboard")}
-                    className="font-bold text-xl tracking-wide text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
-                >
-                    Button 2
-                </button>
-
-                <button
-                    onClick={() => navigate("/dashboard")}
-                    className="font-bold text-xl tracking-wide text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
-                >
-                    Button 3
-                </button>
-
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate("/notifications")}
@@ -128,7 +114,7 @@ function Layout() {
                         </button>
 
                         {profileOpen && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-lg overflow-hidden">
+                            <div className="absolute right-0 mt-2 z-50 w-48 bg-white text-gray-800 rounded-md shadow-lg overflow-hidden">
                                 <div className="px-4 py-3 border-b">
                                     <p className="font-semibold">
                                         {user?.firstName} {user?.lastName}

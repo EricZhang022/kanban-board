@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.kanbanboard.backend.entity.Board;
 import com.kanbanboard.backend.entity.BoardInvitation;
@@ -23,6 +24,13 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     Optional<Notification> findByNotificationIdAndRecipient(UUID notificationId, User recipient);
     Optional<Notification> findByNotificationIdAndRecipientAndReadTrue(UUID notificationId, User recipient);
     Optional<Notification> findByInvitationAndType(BoardInvitation invitation, NotificationType type);
+
+    @Modifying
+    @Query("""
+        DELETE FROM Notification n
+        WHERE n.board = :board
+    """)
+    void deleteByBoard(@Param("board") Board board);
 
     @Modifying
     @Query("""

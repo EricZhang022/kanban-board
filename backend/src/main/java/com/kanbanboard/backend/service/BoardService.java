@@ -410,13 +410,16 @@ public class BoardService {
             return res;
         }
 
-        // 1. Delete notifications referencing this board's invitations
+        // 1. Delete notifications referencing this board directly
+        notifRepo.deleteByBoard(currBoard);
+
+        // 2. Delete notifications referencing this board's invitations
         notifRepo.deleteByBoardInvitations(currBoard);
 
-        // 2. Delete invitations associated with this board
+        // 3. Delete invitations associated with this board
         invitationRepo.deleteByBoard(currBoard);
 
-        // 3. Finally, delete the board
+        // 4. Finally, delete the board
         boardRepo.delete(currBoard);
         res = new Response<>(200, "Board is successfully deleted");
         return res;
