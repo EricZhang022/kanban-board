@@ -46,6 +46,8 @@ function BoardPage() {
     const [editCardTitle, setEditCardTitle] = useState("");
     const [editCardDesc, setEditCardDesc] = useState("");
 
+    const [activityLog, setActivityLog] = useState([]);
+
 
     const fetchBoard = async () => {
         const res = await fetch(`http://localhost:8080/api/board/${id}`, {
@@ -268,6 +270,19 @@ function BoardPage() {
         }
     };
 
+    const handleActivityLog = async () => {
+        const res = await fetch(`http://localhost:8080/api/activitylog/${board?.boardId}`, {
+            method: "GET",
+            credentials: "include",
+        });
+        if (res.ok){
+            console.log("tis the activity bord", res)
+            const body = await res.json();
+            setActivityLog(body);
+            console.log(body.data)
+        }
+    }
+
     const openEditModal = (card: Card) => {
         setSelectedCard(card);
         setEditCardTitle(card.title);
@@ -312,6 +327,7 @@ function BoardPage() {
                         <button onClick={() => setEditingName(true)} className="text-sm text-cyan-600 hover:underline cursor-pointer">
                             Rename
                         </button>
+                        <button onClick={() => handleActivityLog()}>hi</button>
                     </div>
                 )}
 
