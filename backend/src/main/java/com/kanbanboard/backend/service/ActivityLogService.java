@@ -9,7 +9,7 @@ import javax.management.RuntimeErrorException;
 
 import org.springframework.stereotype.Service;
 
-import com.kanbanboard.activitydetails.CreateCardLog;
+import com.kanbanboard.activitydetails.*;
 import com.kanbanboard.backend.dto.ActivityLogDTO;
 import com.kanbanboard.backend.dto.Response;
 import com.kanbanboard.backend.entity.ActivityLog;
@@ -65,13 +65,45 @@ public class ActivityLogService {
         System.out.println(getAllLogs);
         System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         for (ActivityLog a : getAllLogs){
-            String summary = "";
-            if (a.getActionType() == (ActionType.create_card)){ //gonna implement this with switch later
-                CreateCardLog obj = objectMapper.readValue(a.getDetails(), CreateCardLog.class);//turning jsonb string back into an obj
-                String cardName = cardRepo.getReferenceById(obj.getCardID()).getTitle();
-                String columnName = columnRepo.getReferenceById(obj.getColumnID()).getName();
-                summary = "Created a card named " + cardName + " in " + columnName;
-            }
+            // String summary = "";
+            // if (a.getActionType() == (ActionType.create_card)){ //gonna implement this with switch later
+            //     CreateCardLog obj = objectMapper.readValue(a.getDetails(), CreateCardLog.class);//turning jsonb string back into an obj
+            //     String cardName = cardRepo.getReferenceById(obj.getCardID()).getTitle();
+            //     String columnName = columnRepo.getReferenceById(obj.getColumnID()).getName();
+            //     summary = "Created a card named " + cardName + " in " + columnName;
+            // }
+            
+            String summary = switch (a.getActionType()){
+                case create_card -> {
+                    CreateCardLog obj = objectMapper.readValue(a.getDetails(), CreateCardLog.class);
+                    yield "Created a card named " + obj.getCardName() + " in " + obj.getColumnName();
+                }
+                case move_card -> {
+                    MoveCardLog obj = objectMapper.readValue(a.getDetails(), MoveCardLog.class);
+                    yield "Moved card named " + obj.getCardName() + " from " + obj.getColumnFrom() + "to " + obj.getColumnTo();
+                }
+                case delete_card -> {
+                    DeleteCardLog obj = objectMapper.readValue(a.getDetails(), DeleteCardLog.class);
+                    yield "Deleted card " + obj.getCardName();
+                }
+                case update_card -> {
+                    UpdateCardLog obj = objectMapper.readValue(a.getDetails(), UpdateCardLog.class);
+                    yield "Updated card " + obj.getCardName() + " in " + obj.getCardName();
+                }
+                case create_column -> {
+                    CreateColumnLog obj = objectMapper.readValue(a.getDetails(), CreateColumnLog.class);
+                    yield "Created column " + obj.getColumnName();
+                }
+                case delete_column -> {
+                    DeleteColumnLog obj = objectMapper.readValue(a.getDetails(), DeleteColumnLog.class);
+                    yield "Deleted column" + obj.getColumnName();
+                }
+                case reorder_column -> { //idk how to make this more detailed unless every column movement should be stated
+                    // ReorderColumnLog obj = objectMapper.readValue(a.getDetails(), ReorderColumnLog.class);
+                    yield "Reordered Columns";
+                }
+
+            };
             ActivityLogDTO temp = new ActivityLogDTO(a.getLogID(), a.getEditor().getUsername(), a.getActionType(), summary, a.getCreatedAt());
             allAct.add(temp);
         }
