@@ -1,18 +1,26 @@
 package com.kanbanboard.backend.dto;
 
+import java.util.UUID;
+
 import com.kanbanboard.backend.entity.User;
 
 public class UserDTO {
+    private UUID userid;
     private String firstName;
     private String lastName;
     private String username;
     private String email;
 
     public UserDTO(User user) {
+        this.userid = user.getUserid();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.username = user.getUsername();
         this.email = user.getEmail();
+    }
+
+    public UUID getUserId() {
+        return userid;
     }
 
     public String getFirstName() {

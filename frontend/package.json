@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
+    "@stomp/stompjs": "^7.3.0",
     "@tailwindcss/vite": "^4.3.3",
     "lucide-react": "^1.34.0",
     "react": "^19.2.7",

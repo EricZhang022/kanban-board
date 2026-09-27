@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
 interface User {
-    userid: string;
+    userId: string;
     firstName: string;
     lastName: string;
     username: string;
