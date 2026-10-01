@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { Settings } from "lucide-react";
+import useWebSocket from "../hooks/useWebSocket";
 
 interface Card {
     cardId: string;
@@ -18,7 +19,7 @@ interface Column {
 }
 
 interface User {
-    userid: string;
+    userId: string;
     firstName: string;
     lastName: string;
     username: string;
@@ -212,6 +213,8 @@ function BoardPage() {
         setEditCardDesc(card.description || "");
     };
 
+    const onlineUsers = useWebSocket(board?.boardId);
+
     if (!board) {
         return <div className="max-w-4xl mx-auto px-4 py-10">Loading...</div>;
     }
@@ -253,6 +256,25 @@ function BoardPage() {
                         )}
                     </div>    
             </div>
+
+            {onlineUsers.length > 0 && (
+                <div className="flex items-center gap-2 mb-4">
+                    <span className="text-sm font-medium text-gray-700">
+                        Online:
+                    </span>
+
+                    {onlineUsers.map((user) => (
+                        <div
+                            key={user.userId}
+                            className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center text-sm font-medium text-cyan-700"
+                            title={`${user.firstName} ${user.lastName}`}
+                        >
+                            {user.firstName[0]}
+                            {user.lastName[0]}
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <div className="border border-gray-200 rounded-lg p-6 mb-6">
                 <DragDropContext onDragEnd={onDragEnd}>

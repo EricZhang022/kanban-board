@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router";
 import { X } from "lucide-react";
 
 interface User {
-    userid: string;
+    userId: string;
     firstName: string;
     lastName: string;
     username: string;
@@ -213,7 +213,7 @@ function BoardSettings() {
                     <div className="space-y-4 my-4">
                         {board.collaborators.map((collaborator) => (
                             <div
-                                key={collaborator.userid}
+                                key={collaborator.userId}
                                 className="flex items-center gap-3"
                             >
                             
