@@ -6,6 +6,7 @@ interface User {
     lastName: string;
     username: string;
     email: string;
+    profileColor: string,
 }
 
 function Settings() {
@@ -15,6 +16,22 @@ function Settings() {
         setUser: React.Dispatch<React.SetStateAction<User | null>>;
     }>();
 
+    const profileColors = [
+        "#00B8DB", // Cyan
+        "#EF4444", // Red
+        "#22C55E", // Green
+        "#EAB308", // Yellow
+        "#A855F7", // Purple
+        "#1E40AF", // Navy Blue
+        "#F97316", // Orange
+        "#6B7280", // Gray
+        "#EC4899", // Pink
+        "#92400E", // Brown
+        "#14B8A6", // Teal
+        "#6366F1", // Indigo
+    ];
+
+    const [profileColor, setProfileColor] = useState(user?.profileColor ?? "#00B8DB");
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -36,10 +53,36 @@ function Settings() {
             setLastName(user.lastName);
             setUsername(user.username);
             setEmail(user.email);
+            setProfileColor(user.profileColor);
         }
     }, [user]);
 
     const initials = user ? `${user.firstName[0]}${user.lastName[0]}` : "";
+
+    const updateProfileColor = async (color: string) => {
+        try {
+            const response = await fetch("http://localhost:8080/api/users/me/profile-color", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        profileColor: color,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to update profile color");
+            }
+
+            setProfileColor(color);
+
+        } catch (error) {
+            console.error("Error updating profile color:", error);
+        }
+    }
 
     const handleFirstNameSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -219,7 +262,8 @@ function Settings() {
         <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
             {/* Profile Header */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-6 flex items-center">
-                <div className="w-20 h-20 rounded-full bg-cyan-500 text-white flex items-center justify-center text-2xl font-bold">
+                <div className="w-20 h-20 rounded-full text-white flex items-center justify-center text-2xl font-bold" 
+                    style={{ backgroundColor: profileColor }}>
                     {initials}
                 </div>
                 <div className="ml-5">
@@ -227,6 +271,31 @@ function Settings() {
                         {user?.firstName} {user?.lastName}
                     </h1>
                     <p className="text-gray-500 mt-1">@{user?.username}</p>
+                </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-6">
+                    Profile Color
+                </h2>
+
+                <div className="flex items-center gap-4">
+                    {profileColors.map((color) => (
+                        <button
+                            key={color}
+                            type="button"
+                            onClick={() => updateProfileColor(color)}
+                            className="w-10 h-10 rounded-full border-2 border-white shadow-md"
+                            style={{ backgroundColor: color }}
+                            aria-label={`Select profile color ${color}`}
+                        >
+                            {profileColor === color && (
+                                <span className="text-white text-lg">
+                                    ✓
+                                </span>
+                            )}
+                        </button>
+                    ))}
                 </div>
             </div>
 

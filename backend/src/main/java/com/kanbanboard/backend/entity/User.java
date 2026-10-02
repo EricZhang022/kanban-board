@@ -28,6 +28,9 @@ public class User {
     private String email;
     private String password;
 
+    @Column(nullable = false)
+    private String profileColor = "#00B8DB";
+
     // Constructors
     public User() {}
 
@@ -82,6 +85,14 @@ public class User {
     }
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    // color
+    public String getProfileColor() {
+        return profileColor;
+    }
+    public void setProfileColor(String profileColor) {
+        this.profileColor = profileColor;
     }
 
 }

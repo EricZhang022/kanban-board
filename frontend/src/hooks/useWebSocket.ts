@@ -6,6 +6,7 @@ type PresenceUser = {
     firstName: string;
     lastName: string;
     username: string;
+    profileColor: string;
 };
 
 const useWebSocket = (boardId?: string) => {

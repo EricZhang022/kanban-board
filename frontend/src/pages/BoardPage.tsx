@@ -266,7 +266,8 @@ function BoardPage() {
                     {onlineUsers.map((user) => (
                         <div
                             key={user.userId}
-                            className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center text-sm font-medium text-cyan-700"
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium text-white"
+                            style={{ backgroundColor: user.profileColor }}
                             title={`${user.firstName} ${user.lastName}`}
                         >
                             {user.firstName[0]}
