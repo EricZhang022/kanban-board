@@ -83,7 +83,8 @@ public class PresenceService {
                         user.getUserid(),
                         user.getFirstName(),
                         user.getLastName(),
-                        user.getUsername()
+                        user.getUsername(),
+                        user.getProfileColor()
                 );
             })
             .toList();

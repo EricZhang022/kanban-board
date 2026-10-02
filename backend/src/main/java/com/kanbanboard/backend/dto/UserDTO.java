@@ -10,6 +10,7 @@ public class UserDTO {
     private String lastName;
     private String username;
     private String email;
+    private String profileColor;
 
     public UserDTO(User user) {
         this.userid = user.getUserid();
@@ -17,6 +18,7 @@ public class UserDTO {
         this.lastName = user.getLastName();
         this.username = user.getUsername();
         this.email = user.getEmail();
+        this.profileColor = user.getProfileColor();
     }
 
     public UUID getUserId() {
@@ -37,5 +39,9 @@ public class UserDTO {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getProfileColor() {
+        return profileColor;
     }
 }

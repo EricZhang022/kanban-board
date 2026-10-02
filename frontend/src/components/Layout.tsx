@@ -8,6 +8,7 @@ interface User {
     lastName: string;
     username: string;
     email: string;
+    profileColor: string;
 }
 
 function Layout() {
@@ -108,7 +109,8 @@ function Layout() {
                     <div ref={profileRef} className="relative">
                         <button
                             onClick={() => setProfileOpen(!profileOpen)}
-                            className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center font-semibold hover:bg-cyan-400 transition cursor-pointer"
+                            className="w-10 h-10 rounded-full flex items-center justify-center font-semibold hover:bg-cyan-400 transition cursor-pointer"
+                            style={{ backgroundColor: user?.profileColor }}
                         >
                             {initials}
                         </button>

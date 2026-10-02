@@ -18,6 +18,7 @@ import com.kanbanboard.backend.dto.UserDTO;
 import com.kanbanboard.backend.dto.Response;
 import com.kanbanboard.backend.dto.FirstNameRequest;
 import com.kanbanboard.backend.dto.LastNameRequest;
+import com.kanbanboard.backend.dto.ProfileColorRequest;
 import com.kanbanboard.backend.dto.UsernameRequest;
 import com.kanbanboard.backend.dto.EmailRequest;
 import com.kanbanboard.backend.dto.ChangePasswordRequest;
@@ -49,6 +50,22 @@ public class UserController {
         Response<UserDTO> res = new Response<>(200, "OK", userDTO);
 
         return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    @PutMapping("/me/profile-color")
+    public ResponseEntity<Response<String>> updateProfileColor(@RequestBody ProfileColorRequest request, Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String profileColor = request.getProfileColor();
+
+        user.setProfileColor(profileColor);
+        
+        userRepository.save(user);
+
+        return ResponseEntity.ok(new Response<>(200, "Profile Color updated successfully"));
     }
 
     // Triggers when the user tries to update their first name
