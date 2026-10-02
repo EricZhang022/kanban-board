@@ -7,6 +7,7 @@ interface User {
     firstName: string;
     lastName: string;
     username: string;
+    profileColor: string;
 }
 
 interface Board {
@@ -216,9 +217,9 @@ function BoardSettings() {
                                 key={collaborator.userId}
                                 className="flex items-center gap-3"
                             >
-                            
-                                <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center">
-                                    <span className="text-sm font-semibold text-cyan-700">
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center"
+                                    style={{ backgroundColor: collaborator.profileColor }} >
+                                    <span className="text-sm font-semibold text-white">
                                         {collaborator.firstName[0]}
                                         {collaborator.lastName[0]}
                                     </span>
