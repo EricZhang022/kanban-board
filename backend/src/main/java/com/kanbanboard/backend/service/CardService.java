@@ -17,6 +17,7 @@ import com.kanbanboard.backend.repo.CardRepository;
 
 @Service
 public class CardService {
+    private static final java.util.regex.Pattern HEX_COLOR_PATTERN = java.util.regex.Pattern.compile("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
     private final BoardColumnRepository columnRepo;
     private final CardRepository cardRepo;
     private final BoardService boardService;
@@ -49,7 +50,14 @@ public class CardService {
         String description = request.getDescription();
         int pos = column.getCards() != null ? column.getCards().size() : 0;
 
-        Card card = new Card(title, description, pos, column);
+        
+        String color = request.getColor();
+        if (color == null || !HEX_COLOR_PATTERN.matcher(color).matches()) {
+            color = "#ffffff";
+        }
+        String link = request.getLink();
+
+        Card card = new Card(title, description, pos, color, link, column);
         Card savedCard = cardRepo.save(card);
 
         CardDTO cardDTO = new CardDTO(savedCard);
@@ -100,6 +108,14 @@ public class CardService {
 
         card.setTitle(request.getTitle());
         card.setDescription(request.getDescription());
+
+        if (request.getColor() != null && HEX_COLOR_PATTERN.matcher(request.getColor()).matches()) {
+            card.setColor(request.getColor());
+        } else if (card.getColor() == null) {
+            card.setColor("#ffffff");
+        }
+
+        card.setLink(request.getLink());
         Card savedCard = cardRepo.save(card);
 
         CardDTO cardDTO = new CardDTO(savedCard);
