@@ -8,6 +8,8 @@ interface Card {
     title: string;
     description?: string;
     position: number;
+    color?: string;
+    link?: string;
 }
 
 interface Column {
@@ -33,6 +35,15 @@ interface Board {
     columns: Column[]
 }
 
+const CARD_COLORS = [
+    { label: "White", value: "#ffffff" },
+    { label: "Red", value: "#fecdd3" },
+    { label: "Yellow", value: "#fef08a" },
+    { label: "Green", value: "#bbf7d0" },
+    { label: "Blue", value: "#bfdbfe" },
+    { label: "Purple", value: "#e9d5ff" },
+];
+
 function BoardPage() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -47,6 +58,11 @@ function BoardPage() {
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
     const [editCardTitle, setEditCardTitle] = useState("");
     const [editCardDesc, setEditCardDesc] = useState("");
+
+    const [newCardColor, setNewCardColor] = useState("#ffffff");
+    const [newCardLink, setNewCardLink] = useState("");
+    const [editCardColor, setEditCardColor] = useState("#ffffff");
+    const [editCardLink, setEditCardLink] = useState("");
 
 
     const fetchBoard = async () => {
@@ -164,13 +180,17 @@ function BoardPage() {
             credentials: "include",
             body: JSON.stringify({ 
                 title: newCardTitle.trim(), 
-                description: newCardDesc.trim() 
+                description: newCardDesc.trim(),
+                color: newCardColor,
+                link: newCardLink.trim()
             }),
         });
 
         if (res.ok) {
             setNewCardTitle("");
             setNewCardDesc("");
+            setNewCardColor("#ffffff");
+            setNewCardLink("");
             setActiveCardColId(null);
             fetchBoard();
         }
@@ -186,6 +206,8 @@ function BoardPage() {
             body: JSON.stringify({
                 title: editCardTitle.trim(),
                 description: editCardDesc.trim(),
+                color: editCardColor,
+                link: editCardLink.trim()
             }),
         });
 
@@ -210,6 +232,8 @@ function BoardPage() {
         setSelectedCard(card);
         setEditCardTitle(card.title);
         setEditCardDesc(card.description || "");
+        setEditCardColor(card.color || "#ffffff");
+        setEditCardLink(card.link || "");
     };
 
     if (!board) {
@@ -302,6 +326,10 @@ function BoardPage() {
                                                                             ref={providedCard.innerRef}
                                                                             {...providedCard.draggableProps}
                                                                             {...providedCard.dragHandleProps}
+                                                                            style={{ 
+                                                                                ...providedCard.draggableProps.style,
+                                                                                backgroundColor: card.color || "#ffffff" 
+                                                                            }}
                                                                             onClick={() => openEditModal(card)}
                                                                             className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex justify-between items-start text-sm hover:border-cyan-400 hover:shadow transition cursor-pointer select-none group"
                                                                         >
@@ -313,6 +341,18 @@ function BoardPage() {
                                                                                     <p className="text-gray-500 text-xs mt-1.5 break-words line-clamp-2 leading-relaxed">
                                                                                         {card.description}
                                                                                     </p>
+                                                                                )}
+
+                                                                                {card.link && (
+                                                                                    <a
+                                                                                        href={card.link.startsWith("http") ? card.link : `https://${card.link}`}
+                                                                                        target="_blank"
+                                                                                        rel="noreferrer"
+                                                                                        onClick={(e) => e.stopPropagation()}
+                                                                                        className="inline-flex items-center gap-1 text-xs text-cyan-700 hover:underline mt-2 font-medium"
+                                                                                    >
+                                                                                        🔗 Link 
+                                                                                    </a>
                                                                                 )}
                                                                             </div>
                                                                             <button
@@ -426,6 +466,35 @@ function BoardPage() {
                                 />
                             </div>
 
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Attachment Link (optional)</label>
+                                <input
+                                    type="url"
+                                    placeholder="https://example.com"
+                                    value={newCardLink}
+                                    onChange={(e) => setNewCardLink(e.target.value)}
+                                    className="w-full text-sm p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-700"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-2">Card Color</label>
+                                <div className="flex gap-2">
+                                    {CARD_COLORS.map((c) => (
+                                        <button
+                                            key={c.value}
+                                            type="button"
+                                            onClick={() => setNewCardColor(c.value)}
+                                            style={{ backgroundColor: c.value }}
+                                            className={`w-7 h-7 rounded-full border-2 transition cursor-pointer ${
+                                                newCardColor === c.value ? "border-cyan-600 scale-110" : "border-gray-300"
+                                            }`}
+                                            title={c.label}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className="flex justify-end gap-2 pt-2">
                                 <button
                                     type="button"
@@ -433,6 +502,8 @@ function BoardPage() {
                                         setActiveCardColId(null);
                                         setNewCardTitle("");
                                         setNewCardDesc("");
+                                        setNewCardColor("#ffffff");
+                                        setNewCardLink("");
                                     }}
                                     className="text-xs px-4 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition cursor-pointer"
                                 >
@@ -486,6 +557,35 @@ function BoardPage() {
                                     className="w-full text-sm p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-700 leading-relaxed"
                                 />
                             </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Attachment Link</label>
+                                <input
+                                    type="url"
+                                    placeholder="https://example.com"
+                                    value={editCardLink}
+                                    onChange={(e) => setEditCardLink(e.target.value)}
+                                    className="w-full text-sm p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-700"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-2">Card Color</label>
+                                <div className="flex gap-2">
+                                    {CARD_COLORS.map((c) => (
+                                        <button
+                                            key={c.value}
+                                            type="button"
+                                            onClick={() => setEditCardColor(c.value)}
+                                            style={{ backgroundColor: c.value }}
+                                            className={`w-7 h-7 rounded-full border-2 transition cursor-pointer ${
+                                                editCardColor === c.value ? "border-cyan-600 scale-110" : "border-gray-300"
+                                            }`}
+                                            title={c.label}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            
 
                             <div className="flex justify-between items-center pt-2">
                                 <button

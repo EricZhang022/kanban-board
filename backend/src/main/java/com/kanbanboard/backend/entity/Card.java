@@ -22,6 +22,9 @@ public class Card {
     private String title;
     private String description;
     private int position;
+    private String color;
+    private String link;
+    
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "column_id", nullable = false)
@@ -30,10 +33,12 @@ public class Card {
 
     public Card() {}
 
-    public Card(String title, String description, int position, Column column) {
+    public Card(String title, String description, int position, String color, String link, Column column) {
         this.title = title;
         this.description = description;
         this.position = position;
+        this.color = color;
+        this.link = link;
         this.column = column;
     }
 
@@ -48,6 +53,12 @@ public class Card {
 
     public int getPosition() { return position; }
     public void setPosition(int position) { this.position = position; }
+
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
+
+    public String getLink() { return link; }
+    public void setLink(String link) { this.link = link; }
 
     public Column getColumn() { return column; }
     public void setColumn(Column column) { this.column = column; }

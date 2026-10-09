@@ -48,8 +48,10 @@ public class CardService {
         String title = request.getTitle();
         String description = request.getDescription();
         int pos = column.getCards() != null ? column.getCards().size() : 0;
+        String color = request.getColor() != null ? request.getColor() : "#ffffff";
+        String link = request.getLink();
 
-        Card card = new Card(title, description, pos, column);
+        Card card = new Card(title, description, pos, color, link, column);
         Card savedCard = cardRepo.save(card);
 
         CardDTO cardDTO = new CardDTO(savedCard);
@@ -100,6 +102,8 @@ public class CardService {
 
         card.setTitle(request.getTitle());
         card.setDescription(request.getDescription());
+        card.setColor(request.getColor());
+        card.setLink(request.getLink());
         Card savedCard = cardRepo.save(card);
 
         CardDTO cardDTO = new CardDTO(savedCard);
