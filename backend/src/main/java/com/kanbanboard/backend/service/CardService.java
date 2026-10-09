@@ -154,6 +154,8 @@ public class CardService {
         Board originalBoard = card.getColumn().getBoard();
         Board targetBoard = targetCol.getBoard();
 
+        String originalColumn = card.getColumn().getName();
+
         if (!originalBoard.getBoardId().equals(targetBoard.getBoardId())) {
             res = new Response<>(400, "Cannot move a card to a column on a different board");
             return res;
@@ -170,8 +172,8 @@ public class CardService {
 
         CardDTO cardDTO = new CardDTO(savedCard);
 
-        UpdateCardLog u = new UpdateCardLog(card.getTitle(), targetCol.getName());
-        activityLogService.logActivity(originalBoard, (userRepo.findById(userId)).orElse(null), ActionType.move_card, u);
+        MoveCardLog m = new MoveCardLog(card.getTitle(), originalColumn, targetCol.getName());
+        activityLogService.logActivity(originalBoard, (userRepo.findById(userId)).orElse(null), ActionType.move_card, m);
 
 
         res = new Response<>(200, "Card moved successfully", cardDTO);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
+import ActivityLog from '../components/ActivityLog'
 
 interface Card {
     cardId: string;
@@ -47,6 +48,7 @@ function BoardPage() {
     const [editCardDesc, setEditCardDesc] = useState("");
 
     const [activityLog, setActivityLog] = useState([]);
+    const [activePage, setActivePage] = useState("board")
 
 
     const fetchBoard = async () => {
@@ -327,7 +329,7 @@ function BoardPage() {
                         <button onClick={() => setEditingName(true)} className="text-sm text-cyan-600 hover:underline cursor-pointer">
                             Rename
                         </button>
-                        <button onClick={() => handleActivityLog()}>hi</button>
+                        
                     </div>
                 )}
 
@@ -370,10 +372,35 @@ function BoardPage() {
                     </div>
                 )}
 
+                <div className="flex gap-1 mb-4 border-b border-gray-200">
+    <button
+        onClick={() => setActivePage("board")}
+        className={`px-4 py-2 text-sm font-medium border-b-2 transition cursor-pointer ${
+            activePage === "board"
+                ? "border-cyan-500 text-cyan-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+        }`}
+    >
+        Board
+    </button>
+    <button
+        onClick={() => setActivePage("activity")}
+        className={`px-4 py-2 text-sm font-medium border-b-2 transition cursor-pointer ${
+            activePage === "activity"
+                ? "border-cyan-500 text-cyan-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+        }`}
+    >
+        Activity Log
+    </button>
+</div>
+
                 {collaboratorErrorMessage && <p className="text-red-500 text-sm mt-2">{collaboratorErrorMessage}</p>}
 
             </div>
 
+
+{activePage === 'board' ? (
             <div className="border border-gray-200 rounded-lg p-6 mb-6">
                 <DragDropContext onDragEnd={onDragEnd}>
                     <Droppable droppableId="columns-container" direction="horizontal" type="COLUMN">
@@ -516,6 +543,10 @@ function BoardPage() {
                     </Droppable>
                 </DragDropContext>               
             </div>
+
+            ) : (
+                <ActivityLog boardId={board.boardId} />
+            )}
 
             {board.role === "owner" && (
                 <button

@@ -60,27 +60,17 @@ public class ActivityLogService {
         List<ActivityLogDTO> allAct = new ArrayList<>();
         Response<List<ActivityLogDTO>> res;
     
-        System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
         List<ActivityLog> getAllLogs = activityLogRepository.findByBoard_BoardIdOrderByCreatedAtDesc(boardID);
-        System.out.println(getAllLogs);
-        System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         for (ActivityLog a : getAllLogs){
-            // String summary = "";
-            // if (a.getActionType() == (ActionType.create_card)){ //gonna implement this with switch later
-            //     CreateCardLog obj = objectMapper.readValue(a.getDetails(), CreateCardLog.class);//turning jsonb string back into an obj
-            //     String cardName = cardRepo.getReferenceById(obj.getCardID()).getTitle();
-            //     String columnName = columnRepo.getReferenceById(obj.getColumnID()).getName();
-            //     summary = "Created a card named " + cardName + " in " + columnName;
-            // }
             
             String summary = switch (a.getActionType()){
                 case create_card -> {
                     CreateCardLog obj = objectMapper.readValue(a.getDetails(), CreateCardLog.class);
-                    yield "Created a card named " + obj.getCardName() + " in " + obj.getColumnName();
+                    yield "Created a card named " + obj.getCardName() + " in column " + obj.getColumnName();
                 }
                 case move_card -> {
                     MoveCardLog obj = objectMapper.readValue(a.getDetails(), MoveCardLog.class);
-                    yield "Moved card named " + obj.getCardName() + " from " + obj.getColumnFrom() + "to " + obj.getColumnTo();
+                    yield "Moved card named " + obj.getCardName() + " from column " + obj.getColumnFrom() + " to column " + obj.getColumnTo();
                 }
                 case delete_card -> {
                     DeleteCardLog obj = objectMapper.readValue(a.getDetails(), DeleteCardLog.class);
@@ -88,7 +78,7 @@ public class ActivityLogService {
                 }
                 case update_card -> {
                     UpdateCardLog obj = objectMapper.readValue(a.getDetails(), UpdateCardLog.class);
-                    yield "Updated card " + obj.getCardName() + " in " + obj.getCardName();
+                    yield "Updated card " + obj.getCardName() + " in column " + obj.getCardName();
                 }
                 case create_column -> {
                     CreateColumnLog obj = objectMapper.readValue(a.getDetails(), CreateColumnLog.class);
@@ -96,7 +86,7 @@ public class ActivityLogService {
                 }
                 case delete_column -> {
                     DeleteColumnLog obj = objectMapper.readValue(a.getDetails(), DeleteColumnLog.class);
-                    yield "Deleted column" + obj.getColumnName();
+                    yield "Deleted column " + obj.getColumnName();
                 }
                 case reorder_column -> { //idk how to make this more detailed unless every column movement should be stated
                     // ReorderColumnLog obj = objectMapper.readValue(a.getDetails(), ReorderColumnLog.class);
@@ -107,7 +97,6 @@ public class ActivityLogService {
             ActivityLogDTO temp = new ActivityLogDTO(a.getLogID(), a.getEditor().getUsername(), a.getActionType(), summary, a.getCreatedAt());
             allAct.add(temp);
         }
-        System.out.println("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
 
         res = new Response<>(200, "Successfully got Activity Logs", allAct);
         return res;
