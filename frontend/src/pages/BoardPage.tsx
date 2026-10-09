@@ -228,6 +228,18 @@ function BoardPage() {
         }
     };
 
+    const getSafeUrl = (url?: string) => {
+    if (!url) return "";
+    const trimmed = url.trim();
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+        return trimmed;
+    }
+    if (trimmed.includes(":") && !trimmed.startsWith("http")) {
+        return "#";
+    }
+    return `https://${trimmed}`;
+};
+
     const openEditModal = (card: Card) => {
         setSelectedCard(card);
         setEditCardTitle(card.title);
@@ -345,9 +357,9 @@ function BoardPage() {
 
                                                                                 {card.link && (
                                                                                     <a
-                                                                                        href={card.link.startsWith("http") ? card.link : `https://${card.link}`}
+                                                                                        href={getSafeUrl(card.link)}
                                                                                         target="_blank"
-                                                                                        rel="noreferrer"
+                                                                                        rel="noopener noreferrer"
                                                                                         onClick={(e) => e.stopPropagation()}
                                                                                         className="inline-flex items-center gap-1 text-xs text-cyan-700 hover:underline mt-2 font-medium"
                                                                                     >
