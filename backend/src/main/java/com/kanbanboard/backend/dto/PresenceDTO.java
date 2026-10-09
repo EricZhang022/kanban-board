@@ -2,27 +2,24 @@ package com.kanbanboard.backend.dto;
 
 import java.util.UUID;
 
-import com.kanbanboard.backend.entity.User;
+public class PresenceDTO {
 
-public class UserDTO {
-    private UUID userid;
+    private UUID userId;
     private String firstName;
     private String lastName;
     private String username;
-    private String email;
     private String profileColor;
 
-    public UserDTO(User user) {
-        this.userid = user.getUserid();
-        this.firstName = user.getFirstName();
-        this.lastName = user.getLastName();
-        this.username = user.getUsername();
-        this.email = user.getEmail();
-        this.profileColor = user.getProfileColor();
+    public PresenceDTO(UUID userId, String firstName, String lastName, String username, String profileColor) {
+        this.userId = userId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
+        this.profileColor = profileColor;
     }
 
     public UUID getUserId() {
-        return userid;
+        return userId;
     }
 
     public String getFirstName() {
@@ -35,10 +32,6 @@ public class UserDTO {
 
     public String getUsername() {
         return username;
-    }
-
-    public String getEmail() {
-        return email;
     }
 
     public String getProfileColor() {

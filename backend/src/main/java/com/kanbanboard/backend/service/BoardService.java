@@ -1,8 +1,12 @@
 package com.kanbanboard.backend.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -10,18 +14,31 @@ import com.kanbanboard.backend.dto.BoardDTO;
 import com.kanbanboard.backend.dto.CreateBoardRequest;
 import com.kanbanboard.backend.dto.Response;
 import com.kanbanboard.backend.entity.Board;
+import com.kanbanboard.backend.entity.BoardInvitation;
 import com.kanbanboard.backend.entity.User;
+import com.kanbanboard.backend.enums.InvitationStatus;
+import com.kanbanboard.backend.enums.NotificationType;
 import com.kanbanboard.backend.repo.BoardRepository;
+import com.kanbanboard.backend.repo.InvitationRepository;
+import com.kanbanboard.backend.repo.NotificationRepository;
 import com.kanbanboard.backend.repo.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class BoardService {
+    private final NotificationService notificationService;
     private final UserRepository userRepo;
     private final BoardRepository boardRepo;
+    private final InvitationRepository invitationRepo;
+    private final NotificationRepository notifRepo;
 
-    public BoardService(UserRepository userRepo, BoardRepository boardRepo) {
+    public BoardService(UserRepository userRepo, BoardRepository boardRepo, NotificationService notificationService, InvitationRepository invitationRepo, NotificationRepository notifRepo) {
         this.userRepo = userRepo;
         this.boardRepo = boardRepo;
+        this.notificationService = notificationService;
+        this.invitationRepo = invitationRepo;
+        this.notifRepo = notifRepo;
     }
 
     // validation calls
@@ -50,7 +67,16 @@ public class BoardService {
 
     public List<User> validCollaborators(List<String> collaborators) {
         List<User> users = new ArrayList<>();
+        Set<String> usernames = new HashSet<>();
+
         for (String currUsername : collaborators) {
+
+            if (!usernames.add(currUsername)) {
+                throw new RuntimeException(
+                    "Duplicate collaborator: " + currUsername
+                );
+            }
+
             User currUser = userRepo.findByUsername(currUsername)
                 .orElseThrow(() -> new RuntimeException("Collaborator not found: " + currUsername));
             users.add(currUser);
@@ -89,10 +115,31 @@ public class BoardService {
             }
         }
 
-        Board newBoard = new Board(boardName, owner, collaboratorUsers);
+        // Create board with only the owner
+        Board newBoard = new Board(boardName, owner, new ArrayList<>());
         Board savedBoard = boardRepo.save(newBoard);
 
-        BoardDTO boardDTO = new BoardDTO(savedBoard, owner.getUsername());
+        List<BoardInvitation> pendingInvitations = new ArrayList<>();
+
+        // Create invitations
+        for (User user : collaboratorUsers) {
+
+            BoardInvitation invitation = new BoardInvitation(savedBoard, owner, user);
+
+            pendingInvitations.add(invitation);
+
+            invitationRepo.save(invitation);
+
+            notificationService.sendNotification(
+                owner.getUserid(),
+                user.getUserid(),
+                NotificationType.BOARD_INVITATION,
+                savedBoard,
+                invitation
+            );
+        }
+
+        BoardDTO boardDTO = new BoardDTO(savedBoard, owner.getUsername(), pendingInvitations);
 
         res = new Response<>(200, "Board is successfully created", boardDTO);
         return res;
@@ -148,13 +195,23 @@ public class BoardService {
             res = new Response<>(403, "You do not have access to this board");
             return res;
         }
+
+        List<BoardInvitation> pendingInvitations = new ArrayList<>();
+
+        if (currBoard.getOwner().getUserid().equals(userId)) {
+            pendingInvitations = invitationRepo.findByBoardAndStatus(
+                currBoard,
+                InvitationStatus.PENDING
+            );
+        }
         
-        BoardDTO currBoardDTO = new BoardDTO(currBoard, currUser.getUsername());
+        BoardDTO currBoardDTO = new BoardDTO(currBoard, currUser.getUsername(), pendingInvitations);
         res = new Response<>(200, "Successfully open this board", currBoardDTO);
         return res;
     }
 
     // change Board Name
+    @Transactional 
     public Response<BoardDTO> changeBoardName(UUID boardId, UUID userId, String newBoardName) {
         Response<BoardDTO> res;
         Board currBoard;
@@ -192,6 +249,7 @@ public class BoardService {
     }
 
     // change Collaborators
+    @Transactional 
     public Response<BoardDTO> changeCollaborators(UUID boardId, UUID userId, List<String> newCollaborators) {
         Response<BoardDTO> res;
         Board currBoard;
@@ -235,20 +293,108 @@ public class BoardService {
             }
         }
 
-        currBoard.setCollaborators(collaboratorUsers);
+        // Get the current collaborators of the board
+        List<User> currentCollaborators = new ArrayList<>(currBoard.getCollaborators());
+
+        // Find the new collaborators to be able to invite them
+        List<User> usersToInvite = collaboratorUsers.stream()
+            .filter(user -> currentCollaborators.stream()
+                .noneMatch(existing ->
+                    existing.getUserid().equals(user.getUserid())
+                )
+            )
+            .toList();
+        List<BoardInvitation> pendingInvitations = new ArrayList<>();
+
+        // Keep only collaborators that are still in the requested list
+        List<User> updatedCollaborators = currentCollaborators.stream()
+            .filter(existing ->
+                collaboratorUsers.stream().anyMatch(user ->
+                    user.getUserid().equals(existing.getUserid())
+                )
+            )
+            .collect(Collectors.toList());
+
+        // Remove users no longer requested
+        currBoard.setCollaborators(updatedCollaborators);
+
+        List<String> successfullyInvited = new ArrayList<>();
+
+        // Send invitations to new users
+        for (User user : usersToInvite) {
+
+            // Prevent sending a duplicate invitation if user already has a pending one
+            boolean alreadyHasPendingInvitation =
+                invitationRepo.existsByBoardAndRecipientAndStatusAndExpiresAtAfter(
+                    currBoard,
+                    user,
+                    InvitationStatus.PENDING,
+                    LocalDateTime.now()
+                );
+            
+            if (alreadyHasPendingInvitation) {
+                continue;
+            }
+
+            BoardInvitation invitation = new BoardInvitation(currBoard, currBoard.getOwner(), user);
+
+            pendingInvitations.add(invitation);
+
+            invitationRepo.save(invitation);
+
+            notificationService.sendNotification(
+                currBoard.getOwner().getUserid(),
+                user.getUserid(),
+                NotificationType.BOARD_INVITATION,
+                currBoard,
+                invitation
+            );
+
+            successfullyInvited.add(user.getUsername());
+        }
+
+        List<User> removedCollaborators = currentCollaborators.stream()
+            .filter(existing ->
+                collaboratorUsers.stream().noneMatch(newUser ->
+                    newUser.getUserid().equals(existing.getUserid())
+                )
+            )
+            .toList();
+
+        // Send notification to removed collaborators to let them know they've been removed
+        for (User removedUser : removedCollaborators) {
+            notificationService.sendNotification(
+                currUser.getUserid(),
+                removedUser.getUserid(),
+                NotificationType.COLLABORATOR_REMOVED,
+                currBoard,
+                null
+            );
+        }
+
         boardRepo.save(currBoard);
 
-        BoardDTO boardDTO = new BoardDTO(currBoard, currUser.getUsername());
+        BoardDTO boardDTO = new BoardDTO(currBoard, currUser.getUsername(), pendingInvitations);
 
-        res = new Response<>(200, "Board collaborators successfully updated", boardDTO);
+        String message;
+
+        if (successfullyInvited.isEmpty()) {
+            message = "Board collaborators successfully updated";
+        } else {
+            message = "Board collaborators successfully updated. Invitations sent to: "
+                + String.join(", ", successfullyInvited);
+        }
+
+        res = new Response<>(200, message, boardDTO);
         return res;
     }
 
+    @Transactional 
     public Response<String> deleteABoard(UUID boardId, UUID userId) {
         Response<String> res;
         Board currBoard;
 
-        //validate board first
+        // Validate board first
         try {
             currBoard = boardRepo.findById(boardId)
                 .orElseThrow(() -> new RuntimeException("Board does not exist on deleting a board"));
@@ -264,7 +410,16 @@ public class BoardService {
             return res;
         }
 
-        // delete the board
+        // 1. Delete notifications referencing this board directly
+        notifRepo.deleteByBoard(currBoard);
+
+        // 2. Delete notifications referencing this board's invitations
+        notifRepo.deleteByBoardInvitations(currBoard);
+
+        // 3. Delete invitations associated with this board
+        invitationRepo.deleteByBoard(currBoard);
+
+        // 4. Finally, delete the board
         boardRepo.delete(currBoard);
         res = new Response<>(200, "Board is successfully deleted");
         return res;

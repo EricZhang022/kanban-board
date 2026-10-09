@@ -8,6 +8,9 @@ import Layout from "./components/Layout"
 import ProtectedRoute from "./components/ProtectedRoute"
 import BoardPage from "./pages/BoardPage"
 import CreateBoard from "./pages/CreateBoard"
+import BoardSettings from "./pages/BoardSettings"
+import Notifications from "./pages/Notifications"
+import { NotificationProvider } from "./context/NotificationContext";
 
 function App() {
 
@@ -20,15 +23,18 @@ function App() {
 
         <Route element={
           <ProtectedRoute>
-            <Layout />
+            <NotificationProvider>
+              <Layout />
+            </NotificationProvider>
           </ProtectedRoute>
         }>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/board/:id" element={<BoardPage />} />
+          <Route path="/board/:id/settings" element={<BoardSettings />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/createboard" element={<CreateBoard />} />
-          
-          </Route>
+          <Route path="/notifications" element={<Notifications />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )

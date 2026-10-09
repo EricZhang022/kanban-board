@@ -1,0 +1,159 @@
+package com.kanbanboard.backend.service;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.kanbanboard.backend.dto.Response;
+import com.kanbanboard.backend.entity.Board;
+import com.kanbanboard.backend.entity.BoardInvitation;
+import com.kanbanboard.backend.entity.Notification;
+import com.kanbanboard.backend.entity.User;
+import com.kanbanboard.backend.enums.InvitationStatus;
+import com.kanbanboard.backend.enums.NotificationType;
+import com.kanbanboard.backend.repo.BoardRepository;
+import com.kanbanboard.backend.repo.InvitationRepository;
+import com.kanbanboard.backend.repo.NotificationRepository;
+
+import jakarta.transaction.Transactional;
+
+@Service
+public class InvitationService {
+    private final NotificationService notificationService;
+    private final BoardRepository boardRepo;
+    private final InvitationRepository invitationRepo;
+    private final NotificationRepository notifRepo;
+
+    public InvitationService(NotificationService notificationService, BoardRepository boardRepo, InvitationRepository invitationRepo, NotificationRepository notifRepo) {
+        this.notificationService = notificationService;
+        this.boardRepo = boardRepo;
+        this.invitationRepo = invitationRepo;
+        this.notifRepo = notifRepo;
+    }
+
+    @Transactional
+    public Response<String> acceptInvitation(UUID userId, UUID invitationId) {
+
+        BoardInvitation invitation = invitationRepo.findById(invitationId)
+            .orElseThrow(() -> new RuntimeException("Invitation not found"));
+
+        // Verify the logged-in user owns this invitation
+        if (!invitation.getRecipient().getUserid().equals(userId)) {
+            return new Response<>(403, "You are not authorized to accept this invitation");
+        }
+
+        Notification notification = notifRepo.findByInvitationAndType(invitation, NotificationType.BOARD_INVITATION)
+            .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        // Prevent accepting twice
+        if (invitation.getStatus() != InvitationStatus.PENDING) {
+            return new Response<>(400, "This invitation is no longer pending");
+        }
+
+        // Check expiration before accepting
+        if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            invitation.setStatus(InvitationStatus.EXPIRED);
+
+            // User interacted with it, so mark notification as read
+            notification.setRead(true);
+
+            invitationRepo.save(invitation);
+            notifRepo.save(notification);
+            return new Response<>(400, "This invitation has expired");
+        }
+
+        Board board = invitation.getBoard();
+        User recipient = invitation.getRecipient();
+
+        // Add user as collaborator
+        board.getCollaborators().add(recipient);
+
+        // Update invitation status
+        invitation.setStatus(InvitationStatus.ACCEPTED);
+
+        // Mark notification as read after accepting
+        notification.setRead(true);
+
+        boardRepo.save(board);
+        invitationRepo.save(invitation);
+        notifRepo.save(notification);
+
+        User owner = board.getOwner();
+
+        notificationService.sendNotification(userId, owner.getUserid(), NotificationType.BOARD_INVITATION_ACCEPTED, board, invitation);
+
+        return new Response<>(200, "Invitation accepted");
+    }
+
+    @Transactional
+    public Response<String> declineInvitation(UUID userId, UUID invitationId) {
+        BoardInvitation invitation = invitationRepo.findById(invitationId)
+            .orElseThrow(() -> new RuntimeException("Invitation not found"));
+
+        // Verify recipient
+        if (!invitation.getRecipient().getUserid().equals(userId)) {
+            return new Response<>(403, "You are not authorized to decline this invitation");
+        }
+
+        Notification notification = notifRepo.findByInvitationAndType(invitation, NotificationType.BOARD_INVITATION)
+            .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        // Check expiration before declining
+        if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            invitation.setStatus(InvitationStatus.EXPIRED);
+
+            // User interacted with it, so mark notification as read
+            notification.setRead(true);
+
+            invitationRepo.save(invitation);
+            notifRepo.save(notification);
+            return new Response<>(400, "This invitation has expired");
+        }
+
+        // Prevent declining twice
+        if (invitation.getStatus() != InvitationStatus.PENDING) {
+            return new Response<>(400, "This invitation is no longer pending");
+        }
+
+        // Update invitation status
+        invitation.setStatus(InvitationStatus.DECLINED);
+
+        // Mark notification as read after declining    
+        notification.setRead(true);
+
+        invitationRepo.save(invitation);
+        notifRepo.save(notification);
+
+        Board board = invitation.getBoard();
+        User owner = board.getOwner();
+
+        notificationService.sendNotification(userId, owner.getUserid(), NotificationType.BOARD_INVITATION_DECLINED, board, invitation);
+
+        return new Response<>(200, "Invitation declined");
+    }
+
+    @Transactional 
+    public Response<String> cancelInvitation(UUID userId, UUID invitationId) {
+        BoardInvitation invitation = invitationRepo.findById(invitationId)
+            .orElseThrow(() -> new RuntimeException("Invitation not found"));
+
+        // Verify sender (owner)
+        if (!invitation.getSender().getUserid().equals(userId)) {
+            return new Response<>(403, "You are not authorized to cancel this invitation");
+        }
+
+        // Only pending invitations can be cancelled
+        if (invitation.getStatus() != InvitationStatus.PENDING) {
+            return new Response<>(400, "This invitation is no longer pending");
+        }
+
+        // Cancel the invitation
+        invitation.setStatus(InvitationStatus.CANCELLED);
+
+        invitationRepo.save(invitation);
+
+        return new Response<>(200, "Invitation canceled");
+    }
+
+}

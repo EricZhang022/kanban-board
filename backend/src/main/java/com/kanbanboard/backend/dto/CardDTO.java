@@ -8,6 +8,8 @@ public class CardDTO {
     private String title;
     private String description;
     private int position;
+    private String color;
+    private String link;
 
     public CardDTO() {}
 
@@ -16,10 +18,14 @@ public class CardDTO {
         this.title = card.getTitle();
         this.description = card.getDescription();
         this.position = card.getPosition();
+        this.color = card.getColor();
+        this.link = card.getLink();
     }
 
     public UUID getCardId() { return cardId; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
     public int getPosition() { return position; }
+    public String getColor() { return color; }
+    public String getLink() { return link; }
 }

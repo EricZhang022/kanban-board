@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import ActivityLog from '../components/ActivityLog'
+import { Settings } from "lucide-react";
+import useWebSocket from "../hooks/useWebSocket";
 
 interface Card {
     cardId: string;
     title: string;
     description?: string;
     position: number;
+    color?: string;
+    link?: string;
 }
 
 interface Column {
@@ -17,25 +21,35 @@ interface Column {
     cards?: Card[];
 }
 
+interface User {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+}
+
 interface Board {
     boardId: string;
     boardName: string;
     owner: string;
     role: string;
-    collaborators: string[];
+    collaborators: User[];
     columns: Column[]
 }
+
+const CARD_COLORS = [
+    { label: "White", value: "#ffffff" },
+    { label: "Red", value: "#fecdd3" },
+    { label: "Yellow", value: "#fef08a" },
+    { label: "Green", value: "#bbf7d0" },
+    { label: "Blue", value: "#bfdbfe" },
+    { label: "Purple", value: "#e9d5ff" },
+];
 
 function BoardPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [board, setBoard] = useState<Board | null>(null);
-    const [editingName, setEditingName] = useState(false);
-    const [editingCollaborators, setEditingCollaborators] = useState(false);
-    const [newName, setNewName] = useState("");
-    const [newCollaborators, setNewCollaborators] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
-    const [collaboratorErrorMessage, setCollaboratorErrorMessage] = useState("");
 
     //For Columns and Cards
     const [newColName, setNewColName] = useState("");
@@ -47,8 +61,11 @@ function BoardPage() {
     const [editCardTitle, setEditCardTitle] = useState("");
     const [editCardDesc, setEditCardDesc] = useState("");
 
-    const [activityLog, setActivityLog] = useState([]);
     const [activePage, setActivePage] = useState("board")
+    const [newCardColor, setNewCardColor] = useState("#ffffff");
+    const [newCardLink, setNewCardLink] = useState("");
+    const [editCardColor, setEditCardColor] = useState("#ffffff");
+    const [editCardLink, setEditCardLink] = useState("");
 
 
     const fetchBoard = async () => {
@@ -63,35 +80,12 @@ function BoardPage() {
 
         const data = await res.json();
         setBoard(data.data);
-        setNewName(data.data.boardName);
-        setNewCollaborators(data.data.collaborators.join(", "));
     };
 
     useEffect(() => {
         fetchBoard();
     }, [id]);
 
-    const handleRenameSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setErrorMessage("");
-
-        const res = await fetch(`http://localhost:8080/api/board/${id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ boardName: newName }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            setErrorMessage(data.message);
-            return;
-        }
-
-        setBoard(data.data);
-        setEditingName(false);
-    };
     const handleAddColumn = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!newColName.trim()) return;
@@ -107,47 +101,6 @@ function BoardPage() {
             setNewColName("");
             setIsAddingCol(false);
             fetchBoard();
-        }
-    };
-
-    const handleEditCollaboratorsSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setCollaboratorErrorMessage("");
-
-        const collaborators = newCollaborators
-            .split(",")
-            .map((name) => name.trim())
-            .filter((name) => name.length > 0);
-
-        const res = await fetch(`http://localhost:8080/api/board/collab/${id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ collaborators: collaborators.length > 0 ? collaborators : null, }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            setCollaboratorErrorMessage(data.message);
-            return;
-        }
-
-        setBoard(data.data);
-        setEditingCollaborators(false);
-    };
-
-    const handleDelete = async () => {
-        const confirmed = window.confirm("Delete this board? This can't be undone.");
-        if (!confirmed) return;
-
-        const res = await fetch(`http://localhost:8080/api/board/${id}`, {
-            method: "DELETE",
-            credentials: "include",
-        });
-
-        if (res.ok) {
-            navigate("/dashboard");
         }
     };
 
@@ -230,13 +183,17 @@ function BoardPage() {
             credentials: "include",
             body: JSON.stringify({ 
                 title: newCardTitle.trim(), 
-                description: newCardDesc.trim() 
+                description: newCardDesc.trim(),
+                color: newCardColor,
+                link: newCardLink.trim()
             }),
         });
 
         if (res.ok) {
             setNewCardTitle("");
             setNewCardDesc("");
+            setNewCardColor("#ffffff");
+            setNewCardLink("");
             setActiveCardColId(null);
             fetchBoard();
         }
@@ -252,6 +209,8 @@ function BoardPage() {
             body: JSON.stringify({
                 title: editCardTitle.trim(),
                 description: editCardDesc.trim(),
+                color: editCardColor,
+                link: editCardLink.trim()
             }),
         });
 
@@ -272,26 +231,27 @@ function BoardPage() {
         }
     };
 
-    const handleActivityLog = async () => {
-        const res = await fetch(`http://localhost:8080/api/activitylog/${board?.boardId}`, {
-            method: "GET",
-            credentials: "include",
-        });
-        if (res.ok){
-            console.log("tis the activity bord", res)
-            const body = await res.json();
-            setActivityLog(body);
-            console.log(body.data)
-        }
+    const getSafeUrl = (url?: string) => {
+    if (!url) return "";
+    const trimmed = url.trim();
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+        return trimmed;
     }
+    if (trimmed.includes(":") && !trimmed.startsWith("http")) {
+        return "#";
+    }
+    return `https://${trimmed}`;
+};
 
     const openEditModal = (card: Card) => {
         setSelectedCard(card);
         setEditCardTitle(card.title);
         setEditCardDesc(card.description || "");
+        setEditCardColor(card.color || "#ffffff");
+        setEditCardLink(card.link || "");
     };
 
-    
+    const onlineUsers = useWebSocket(board?.boardId);
 
     if (!board) {
         return <div className="max-w-4xl mx-auto px-4 py-10">Loading...</div>;
@@ -303,60 +263,29 @@ function BoardPage() {
                 onClick={() => navigate("/dashboard")}
                 className="text-sm text-gray-500 hover:text-gray-700 mb-4 cursor-pointer"
             >
-                ← Back to boards
+                ← All boards
             </button>
 
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                {editingName ? (
-                    <form onSubmit={handleRenameSubmit} className="flex gap-3 items-start">
-                        <input
-                            type="text"
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
-                            className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                            required
-                        />
-                        <button type="submit" className="bg-cyan-500 text-white px-4 py-2 rounded-md font-medium hover:bg-cyan-400 transition cursor-pointer">
-                            Save
-                        </button>
-                        <button type="button" onClick={() => setEditingName(false)} className="px-4 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition cursor-pointer">
-                            Cancel
-                        </button>
-                    </form>
-                ) : (
-                    <div className="flex justify-between items-center">
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{board.boardName}</h1>
-                        <button onClick={() => setEditingName(true)} className="text-sm text-cyan-600 hover:underline cursor-pointer">
-                            Rename
-                        </button>
-                        
-                    </div>
-                )}
-
-                {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
+                <div className="flex justify-between items-center">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{board.boardName}</h1>
+                    
+                        {board.role === "owner" && (
+                            <button
+                                onClick={() => navigate(`/board/${board.boardId}/settings`)}
+                                className="p-2 text-gray-500 hover:text-cyan-600 hover:bg-gray-100 rounded-md transition cursor-pointer"
+                                title="Board Settings"
+                            >
+                                <Settings size={20} />
+                            </button>
+                        )}
+                </div>
 
                 <p className="text-sm text-gray-500 mt-3">Owner: @{board.owner}</p>
-
-                {editingCollaborators ? (
-                    <form onSubmit={handleEditCollaboratorsSubmit} className="flex gap-3 items-start">
-                        <input
-                            type="text"
-                            value={newCollaborators}
-                            onChange={(e) => setNewCollaborators(e.target.value)}
-                            className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                        />
-                        <button type="submit" className="bg-cyan-500 text-white px-4 py-2 rounded-md font-medium hover:bg-cyan-400 transition cursor-pointer">
-                            Save
-                        </button>
-                        <button type="button" onClick={() => {setEditingCollaborators(false); setCollaboratorErrorMessage(""); setNewCollaborators(board.collaborators.join(", "));}} className="px-4 py-2 rounded-md font-medium text-gray-600 hover:bg-gray-100 transition cursor-pointer">
-                            Cancel
-                        </button>
-                    </form>
-                ) : (
                     <div className="flex justify-between items-center">
                         {board.collaborators.length > 0 ? (
                             <p className="text-sm text-gray-500 mt-1">
-                                Collaborators: {board.collaborators.map((c) => `@${c}`).join(", ")}
+                                Collaborators: {board.collaborators.map((user) => `@${user.username}`).join(", ")}
                             </p>
                         ) : (
                             <p className="text-sm text-gray-500 mt-1">
@@ -373,26 +302,26 @@ function BoardPage() {
                 )}
 
                 <div className="flex gap-1 mb-4 border-b border-gray-200">
-    <button
-        onClick={() => setActivePage("board")}
-        className={`px-4 py-2 text-sm font-medium border-b-2 transition cursor-pointer ${
-            activePage === "board"
-                ? "border-cyan-500 text-cyan-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-        }`}
-    >
-        Board
-    </button>
-    <button
-        onClick={() => setActivePage("activity")}
-        className={`px-4 py-2 text-sm font-medium border-b-2 transition cursor-pointer ${
-            activePage === "activity"
-                ? "border-cyan-500 text-cyan-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-        }`}
-    >
-        Activity Log
-    </button>
+                <button
+                  onClick={() => setActivePage("board")}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition cursor-pointer ${
+                    activePage === "board"
+                      ? "border-cyan-500 text-cyan-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                     }`}
+                  >
+                  Board
+                </button>
+                <button
+                    onClick={() => setActivePage("activity")}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition cursor-pointer ${
+                    activePage === "activity"
+                    ? "border-cyan-500 text-cyan-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                 >
+                  Activity Log
+                </button>
 </div>
 
                 {collaboratorErrorMessage && <p className="text-red-500 text-sm mt-2">{collaboratorErrorMessage}</p>}
@@ -401,6 +330,29 @@ function BoardPage() {
 
 
 {activePage === 'board' ? (
+                    </div>    
+            </div>
+
+            {onlineUsers.length > 0 && (
+                <div className="flex items-center gap-2 mb-4">
+                    <span className="text-sm font-medium text-gray-700">
+                        Online:
+                    </span>
+
+                    {onlineUsers.map((user) => (
+                        <div
+                            key={user.userId}
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium text-white"
+                            style={{ backgroundColor: user.profileColor }}
+                            title={`${user.firstName} ${user.lastName}`}
+                        >
+                            {user.firstName[0]}
+                            {user.lastName[0]}
+                        </div>
+                    ))}
+                </div>
+            )}
+
             <div className="border border-gray-200 rounded-lg p-6 mb-6">
                 <DragDropContext onDragEnd={onDragEnd}>
                     <Droppable droppableId="columns-container" direction="horizontal" type="COLUMN">
@@ -449,6 +401,10 @@ function BoardPage() {
                                                                             ref={providedCard.innerRef}
                                                                             {...providedCard.draggableProps}
                                                                             {...providedCard.dragHandleProps}
+                                                                            style={{ 
+                                                                                ...providedCard.draggableProps.style,
+                                                                                backgroundColor: card.color || "#ffffff" 
+                                                                            }}
                                                                             onClick={() => openEditModal(card)}
                                                                             className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex justify-between items-start text-sm hover:border-cyan-400 hover:shadow transition cursor-pointer select-none group"
                                                                         >
@@ -460,6 +416,18 @@ function BoardPage() {
                                                                                     <p className="text-gray-500 text-xs mt-1.5 break-words line-clamp-2 leading-relaxed">
                                                                                         {card.description}
                                                                                     </p>
+                                                                                )}
+
+                                                                                {card.link && (
+                                                                                    <a
+                                                                                        href={getSafeUrl(card.link)}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        onClick={(e) => e.stopPropagation()}
+                                                                                        className="inline-flex items-center gap-1 text-xs text-cyan-700 hover:underline mt-2 font-medium"
+                                                                                    >
+                                                                                        🔗 Link 
+                                                                                    </a>
                                                                                 )}
                                                                             </div>
                                                                             <button
@@ -586,6 +554,35 @@ function BoardPage() {
                                 />
                             </div>
 
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Attachment Link (optional)</label>
+                                <input
+                                    type="url"
+                                    placeholder="https://example.com"
+                                    value={newCardLink}
+                                    onChange={(e) => setNewCardLink(e.target.value)}
+                                    className="w-full text-sm p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-700"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-2">Card Color</label>
+                                <div className="flex gap-2">
+                                    {CARD_COLORS.map((c) => (
+                                        <button
+                                            key={c.value}
+                                            type="button"
+                                            onClick={() => setNewCardColor(c.value)}
+                                            style={{ backgroundColor: c.value }}
+                                            className={`w-7 h-7 rounded-full border-2 transition cursor-pointer ${
+                                                newCardColor === c.value ? "border-cyan-600 scale-110" : "border-gray-300"
+                                            }`}
+                                            title={c.label}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className="flex justify-end gap-2 pt-2">
                                 <button
                                     type="button"
@@ -593,6 +590,8 @@ function BoardPage() {
                                         setActiveCardColId(null);
                                         setNewCardTitle("");
                                         setNewCardDesc("");
+                                        setNewCardColor("#ffffff");
+                                        setNewCardLink("");
                                     }}
                                     className="text-xs px-4 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition cursor-pointer"
                                 >
@@ -646,6 +645,35 @@ function BoardPage() {
                                     className="w-full text-sm p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-700 leading-relaxed"
                                 />
                             </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Attachment Link</label>
+                                <input
+                                    type="url"
+                                    placeholder="https://example.com"
+                                    value={editCardLink}
+                                    onChange={(e) => setEditCardLink(e.target.value)}
+                                    className="w-full text-sm p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 text-gray-700"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-2">Card Color</label>
+                                <div className="flex gap-2">
+                                    {CARD_COLORS.map((c) => (
+                                        <button
+                                            key={c.value}
+                                            type="button"
+                                            onClick={() => setEditCardColor(c.value)}
+                                            style={{ backgroundColor: c.value }}
+                                            className={`w-7 h-7 rounded-full border-2 transition cursor-pointer ${
+                                                editCardColor === c.value ? "border-cyan-600 scale-110" : "border-gray-300"
+                                            }`}
+                                            title={c.label}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            
 
                             <div className="flex justify-between items-center pt-2">
                                 <button

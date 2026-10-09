@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, Outlet } from "react-router";
+import { Bell } from "lucide-react";
+import { useNotificationContext } from "../context/NotificationContext";
 
 interface User {
     firstName: string;
     lastName: string;
     username: string;
     email: string;
+    profileColor: string;
 }
 
 function Layout() {
@@ -13,6 +16,8 @@ function Layout() {
     const [user, setUser] = useState<User | null>(null);
     const [profileOpen, setProfileOpen] = useState(false);
     const profileRef = useRef<HTMLDivElement>(null);
+
+    const { unreadCount } = useNotificationContext();
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -70,54 +75,73 @@ function Layout() {
                     Dashboard
                 </button>
 
-                <button
-                    onClick={() => navigate("/dashboard")}
-                    className="font-bold text-xl tracking-wide text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
-                >
-                    Button 2
-                </button>
-
-                <button
-                    onClick={() => navigate("/dashboard")}
-                    className="font-bold text-xl tracking-wide text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
-                >
-                    Button 3
-                </button>
-
-                <div ref={profileRef} className="relative">
+                <div className="flex items-center gap-4">
                     <button
-                        onClick={() => setProfileOpen(!profileOpen)}
-                        className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center font-semibold hover:bg-cyan-400 transition cursor-pointer"
+                        onClick={() => navigate("/notifications")}
+                        className="relative text-gray-300 hover:text-white transition cursor-pointer"
+                        aria-label="Notifications"
                     >
-                        {initials}
+                        <Bell size={24} />
+
+                        {unreadCount > 0 && (
+                            <span
+                                className="
+                                    absolute
+                                    -top-2
+                                    -right-2
+                                    bg-red-500
+                                    text-white
+                                    text-xs
+                                    rounded-full
+                                    min-w-5
+                                    h-5
+                                    flex
+                                    items-center
+                                    justify-center
+                                    px-1
+                                "
+                            >
+                                {unreadCount > 99 ? "99+" : unreadCount}
+                            </span>
+                        )}
                     </button>
 
-                    {profileOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-lg overflow-hidden">
-                            <div className="px-4 py-3 border-b">
-                                <p className="font-semibold">
-                                    {user?.firstName} {user?.lastName}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                    @{user?.username}
-                                </p>
+                    <div ref={profileRef} className="relative">
+                        <button
+                            onClick={() => setProfileOpen(!profileOpen)}
+                            className="w-10 h-10 rounded-full flex items-center justify-center font-semibold hover:bg-cyan-400 transition cursor-pointer"
+                            style={{ backgroundColor: user?.profileColor }}
+                        >
+                            {initials}
+                        </button>
+
+                        {profileOpen && (
+                            <div className="absolute right-0 mt-2 z-50 w-48 bg-white text-gray-800 rounded-md shadow-lg overflow-hidden">
+                                <div className="px-4 py-3 border-b">
+                                    <p className="font-semibold">
+                                        {user?.firstName} {user?.lastName}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        @{user?.username}
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={() => {setProfileOpen(false); navigate("/settings")}}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 transition cursor-pointer"
+                                >
+                                    Settings
+                                </button>
+
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 transition cursor-pointer"
+                                >
+                                    Sign Out
+                                </button>
                             </div>
-
-                            <button
-                                onClick={() => {setProfileOpen(false); navigate("/settings")}}
-                                className="w-full text-left px-4 py-2 hover:bg-gray-100 transition cursor-pointer"
-                            >
-                                Settings
-                            </button>
-
-                            <button
-                                onClick={handleLogout}
-                                className="w-full text-left px-4 py-2 hover:bg-gray-100 transition cursor-pointer"
-                            >
-                                Sign Out
-                            </button>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </nav>
 
