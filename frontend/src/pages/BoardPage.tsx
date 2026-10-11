@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import ActivityLog from '../components/ActivityLog'
 import { Settings } from "lucide-react";
 import useWebSocket from "../hooks/useWebSocket";
+import ActivityLog from '../components/ActivityLog'
+
 
 interface Card {
     cardId: string;
@@ -61,11 +62,13 @@ function BoardPage() {
     const [editCardTitle, setEditCardTitle] = useState("");
     const [editCardDesc, setEditCardDesc] = useState("");
 
-    const [activePage, setActivePage] = useState("board")
     const [newCardColor, setNewCardColor] = useState("#ffffff");
     const [newCardLink, setNewCardLink] = useState("");
     const [editCardColor, setEditCardColor] = useState("#ffffff");
     const [editCardLink, setEditCardLink] = useState("");
+
+    const [activePage, setActivePage] = useState("board")
+
 
 
     const fetchBoard = async () => {
@@ -292,16 +295,10 @@ function BoardPage() {
                                 Collaborators: No collaborators
                             </p>
                         )}
-                        {board.role === "owner" && (
-                            <button onClick={() => setEditingCollaborators(true)} className="text-sm text-cyan-600 hover:underline cursor-pointer">
-                                Edit
-                            </button>
-                        )}
+                    </div>    
+            </div>
 
-                    </div>
-                )}
-
-                <div className="flex gap-1 mb-4 border-b border-gray-200">
+            <div className="flex gap-1 mb-4 border-b border-gray-200">
                 <button
                   onClick={() => setActivePage("board")}
                   className={`px-4 py-2 text-sm font-medium border-b-2 transition cursor-pointer ${
@@ -322,15 +319,6 @@ function BoardPage() {
                  >
                   Activity Log
                 </button>
-</div>
-
-                {collaboratorErrorMessage && <p className="text-red-500 text-sm mt-2">{collaboratorErrorMessage}</p>}
-
-            </div>
-
-
-{activePage === 'board' ? (
-                    </div>    
             </div>
 
             {onlineUsers.length > 0 && (
@@ -353,6 +341,7 @@ function BoardPage() {
                 </div>
             )}
 
+{activePage === 'board' ? (
             <div className="border border-gray-200 rounded-lg p-6 mb-6">
                 <DragDropContext onDragEnd={onDragEnd}>
                     <Droppable droppableId="columns-container" direction="horizontal" type="COLUMN">
@@ -514,15 +503,6 @@ function BoardPage() {
 
             ) : (
                 <ActivityLog boardId={board.boardId} />
-            )}
-
-            {board.role === "owner" && (
-                <button
-                    onClick={handleDelete}
-                    className="text-sm text-red-500 hover:underline cursor-pointer"
-                >
-                    Delete board
-                </button>
             )}
 
             {activeCardColId && (
