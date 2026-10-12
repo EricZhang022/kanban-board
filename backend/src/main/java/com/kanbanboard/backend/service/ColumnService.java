@@ -10,21 +10,31 @@ import com.kanbanboard.backend.dto.ColumnDTO;
 import com.kanbanboard.backend.dto.CreateColumnRequest;
 import com.kanbanboard.backend.dto.ReorderColumnsRequest;
 import com.kanbanboard.backend.dto.Response;
+import com.kanbanboard.backend.entity.ActivityLog.ActionType;
 import com.kanbanboard.backend.entity.Board;
 import com.kanbanboard.backend.entity.Column;
 import com.kanbanboard.backend.repo.BoardColumnRepository;
 import com.kanbanboard.backend.repo.BoardRepository;
+import com.kanbanboard.backend.repo.UserRepository;
+import com.kanbanboard.activitydetails.CreateColumnLog;
+import com.kanbanboard.activitydetails.DeleteColumnLog;
+import com.kanbanboard.activitydetails.ReorderColumnLog;
+
 
 @Service
 public class ColumnService {
     private final BoardRepository boardRepo;
     private final BoardColumnRepository columnRepo;
     private final BoardService boardService;
+    private final ActivityLogService activityLogService;
+    private final UserRepository userRepo;
 
-    public ColumnService(BoardRepository boardRepo, BoardColumnRepository columnRepo, BoardService boardService) {
+    public ColumnService(BoardRepository boardRepo, BoardColumnRepository columnRepo, BoardService boardService, ActivityLogService activityLogService, UserRepository userRepo) {
         this.boardRepo = boardRepo;
         this.columnRepo = columnRepo;
         this.boardService = boardService;
+        this.activityLogService = activityLogService;
+        this.userRepo = userRepo;
     }
 
     public Response<ColumnDTO> createColumn(UUID boardId, CreateColumnRequest request, UUID userId) {
@@ -53,6 +63,11 @@ public class ColumnService {
         Column savedColumn = columnRepo.save(column);
 
         ColumnDTO colDTO = new ColumnDTO(savedColumn);
+
+        CreateColumnLog c = new CreateColumnLog(columnName);
+        activityLogService.logActivity(board, (userRepo.findById(userId)).orElse(null), ActionType.create_column, c);
+
+
         res = new Response<>(200, "Column created successfully", colDTO);
         return res;
     }
@@ -83,6 +98,11 @@ public class ColumnService {
         }
 
         columnRepo.deleteById(columnId);
+
+        DeleteColumnLog d = new DeleteColumnLog(col.getName());
+        activityLogService.logActivity(board, (userRepo.findById(userId)).orElse(null), ActionType.delete_column, d);
+
+
         res = new Response<>(200, "Column deleted successfully");
         return res;
     }
@@ -132,6 +152,12 @@ public class ColumnService {
             columnsToUpdate.get(i).setPosition(i);
             columnRepo.save(columnsToUpdate.get(i));
         }
+
+        ReorderColumnLog r = new ReorderColumnLog();
+        activityLogService.logActivity(board, (userRepo.findById(userId)).orElse(null), ActionType.reorder_column, r);
+
+
+
         res = new Response<>(200, "Columns reordered successfully");
         return res;
     }
