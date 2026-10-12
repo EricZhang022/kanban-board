@@ -66,27 +66,27 @@ public class ActivityLogService {
             String summary = switch (a.getActionType()){
                 case create_card -> {
                     CreateCardLog obj = objectMapper.readValue(a.getDetails(), CreateCardLog.class);
-                    yield "Created a card named " + obj.getCardName() + " in column " + obj.getColumnName();
+                    yield "Created a card named **" + obj.getCardName() + "** in column **" + obj.getColumnName() + "**";
                 }
                 case move_card -> {
                     MoveCardLog obj = objectMapper.readValue(a.getDetails(), MoveCardLog.class);
-                    yield "Moved card named " + obj.getCardName() + " from column " + obj.getColumnFrom() + " to column " + obj.getColumnTo();
+                    yield "Moved card named **" + obj.getCardName() + "** from column **" + obj.getColumnFrom() + "** to column **" + obj.getColumnTo() + "**";
                 }
                 case delete_card -> {
                     DeleteCardLog obj = objectMapper.readValue(a.getDetails(), DeleteCardLog.class);
-                    yield "Deleted card " + obj.getCardName();
+                    yield "Deleted card **" + obj.getCardName() + "**";
                 }
                 case update_card -> {
                     UpdateCardLog obj = objectMapper.readValue(a.getDetails(), UpdateCardLog.class);
-                    yield "Updated card " + obj.getCardName() + " in column " + obj.getCardName();
+                    yield "Updated card **" + obj.getCardName() + "** in column **" + obj.getCardName() + "**";
                 }
                 case create_column -> {
                     CreateColumnLog obj = objectMapper.readValue(a.getDetails(), CreateColumnLog.class);
-                    yield "Created column " + obj.getColumnName();
+                    yield "Created column **" + obj.getColumnName() + "**";
                 }
                 case delete_column -> {
                     DeleteColumnLog obj = objectMapper.readValue(a.getDetails(), DeleteColumnLog.class);
-                    yield "Deleted column " + obj.getColumnName();
+                    yield "Deleted column **" + obj.getColumnName() + "**";
                 }
                 case reorder_column -> { //idk how to make this more detailed unless every column movement should be stated
                     // ReorderColumnLog obj = objectMapper.readValue(a.getDetails(), ReorderColumnLog.class);
