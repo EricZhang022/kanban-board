@@ -288,14 +288,18 @@ function BoardSettings() {
                 </div>
             )}
 
-            {board.role === "owner" && (
-                <button
-                    onClick={handleDelete}
-                    className="text-sm text-red-500 hover:underline cursor-pointer"
-                >
-                    Delete board
-                </button>
-            )}
+            <div className="flex justify-center">
+                {board.role === "owner" && (
+                    <button
+                        onClick={handleDelete}
+                        className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600
+                                transition-colors duration-200 hover:border-red-300 hover:bg-red-50 active:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2
+                                cursor-pointer"
+                    >
+                        Delete board
+                    </button>
+                )}
+            </div>
 
         </div>
     );
